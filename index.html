@@ -1,0 +1,2487 @@
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Koum — Africa's Freight Intelligence Layer</title>
+<meta name="description" content="Post loads. Find trucks. Track shipments. 38 African countries. Built in Kigali."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   KOUM v2 — DESIGN SYSTEM
+   Kinetic Precision (Stitch reference) for all user roles
+   Mission Control dark variant for admin/ZaphenathEnvoy
+   ═══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ── LIGHT MODE (default) ── */
+:root{
+  --bg:#fbf9f8; --surf:#efeded; --surf-lo:#f5f3f3;
+  --surf-hi:#e4e2e2; --card:#ffffff; --card-hi:#ffffff;
+  --navy:#001b44; --navy-2:#002f6c; --navy-3:#0a2f6e;
+  --text:#1b1c1c; --muted:#434750; --subtle:#747781;
+  --bdr:rgba(196,198,210,.2); --bdr-navy:rgba(0,27,68,.08);
+  --shadow:0 4px 24px rgba(0,27,68,.06);
+  --shadow-sm:0 1px 4px rgba(0,27,68,.04);
+  --copper:#B87333; --ember:#D4874A; --gold:#F0B429;
+  --ok:#006d43; --ok-bg:rgba(0,109,67,.08);
+  --err:#ba1a1a; --err-bg:rgba(186,26,26,.08);
+  --warn:#c65900; --warn-bg:rgba(198,89,0,.07);
+  --info:#224583; --info-bg:rgba(34,69,131,.07);
+  --pill-ok:rgba(0,109,67,.12); --pill-err:rgba(186,26,26,.1);
+  --pill-warn:rgba(198,89,0,.1); --pill-info:rgba(34,69,131,.1);
+  --fd:'Fraunces',Georgia,serif;
+  --fu:'Manrope',system-ui,sans-serif;
+  --fi:'Inter',system-ui,sans-serif;
+  --t:.16s ease; --ts:.26s cubic-bezier(.34,1.56,.64,1);
+}
+/* ── DARK MODE ── */
+[data-theme="dark"]:not([data-role="mission"]){
+  --bg:#111111; --surf:#1a1a1a; --surf-lo:#1f1f1f;
+  --surf-hi:#2a2a2a; --card:#1e1e1e; --card-hi:#242424;
+  --navy:#aec6ff; --navy-2:#d8e2ff; --navy-3:#7999dc;
+  --text:#e8e6e3; --muted:#9fa2a8; --subtle:#6b6c71;
+  --bdr:rgba(255,255,255,.08); --bdr-navy:rgba(255,255,255,.06);
+  --shadow:0 4px 24px rgba(0,0,0,.3);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.2);
+  --ok:#59de9b; --ok-bg:rgba(89,222,155,.1);
+  --err:#ff6b6b; --err-bg:rgba(255,107,107,.1);
+  --warn:#fbbc00; --warn-bg:rgba(251,188,0,.1);
+  --info:#aec6ff; --info-bg:rgba(174,198,255,.1);
+  --pill-ok:rgba(89,222,155,.15); --pill-err:rgba(255,107,107,.12);
+  --pill-warn:rgba(251,188,0,.12); --pill-info:rgba(174,198,255,.12);
+}
+/* ── MISSION CONTROL (vessel bridge) ── */
+[data-role="mission"]{
+  --mc-void:#020a12;
+  --mc-hull:#0a1628;
+  --mc-deck:#0d1f3a;
+  --mc-glass:#102040;
+  --mc-amber:#ff8c00;
+  --mc-green:#00e5a0;
+  --mc-red:#ff3a3a;
+  --mc-blue:#00bfff;
+  --mc-dim:rgba(0,191,255,.06);
+  --mc-grid:rgba(0,191,255,.04);
+  --mc-border:rgba(0,191,255,.12);
+  --mc-glow:rgba(0,191,255,.35);
+}
+
+html,body{height:100%;font-family:var(--fu);-webkit-font-smoothing:antialiased;overflow:hidden;background:var(--bg)}
+button,input,select,textarea{font-family:var(--fu)}
+::placeholder{color:var(--subtle)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ── SCREENS ── */
+.scr{display:none!important}
+.scr.on{display:flex!important;flex-direction:column}
+#landing.on,#mc.on{display:block!important}
+
+/* ── ANIMATIONS ── */
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+@keyframes blink{0%,100%{opacity:1}49%{opacity:1}50%{opacity:0}}
+@keyframes flow{0%{stroke-dashoffset:120}100%{stroke-dashoffset:0}}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 8px rgba(0,191,255,.3)}50%{box-shadow:0 0 20px rgba(0,191,255,.7)}}
+.au{animation:up .55s ease both}
+.au1{animation-delay:.06s}.au2{animation-delay:.12s}.au3{animation-delay:.18s}.au4{animation-delay:.24s}
+
+/* ═══════════════════════════════════════
+   LANDING — dark brand-first
+═══════════════════════════════════════ */
+#landing{background:#030303;color:#F7F2EA;overflow-y:auto;overflow-x:hidden}
+.hero{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem 3rem;position:relative;overflow:hidden}
+.h-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:900px;height:700px;background:radial-gradient(ellipse at 50% 0%,rgba(184,115,51,.13) 0%,transparent 56%);pointer-events:none}
+.h-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(184,115,51,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(184,115,51,.04) 1px,transparent 1px);background-size:55px 55px;pointer-events:none}
+.wm{font-family:var(--fd);font-size:clamp(5rem,14vw,10rem);font-weight:300;letter-spacing:.28em;color:#F7F2EA;line-height:.9}
+.wm .o{color:#D4874A;font-style:italic}
+.h-rule{height:1px;width:min(460px,84vw);background:linear-gradient(90deg,transparent,#B87333 18%,#D4874A 50%,#B87333 82%,transparent);opacity:.35;margin:.6rem auto 1.2rem}
+.h-tl{font-family:var(--fd);font-size:clamp(.82rem,2vw,.98rem);font-weight:300;font-style:italic;color:#B87333;letter-spacing:.06em;margin-bottom:2.2rem}
+.role-row{display:flex;gap:.42rem;flex-wrap:wrap;justify-content:center;margin-bottom:.9rem}
+.rpill{padding:.52rem 1.12rem;border-radius:50px;border:1px solid rgba(212,135,74,.28);background:transparent;color:rgba(247,242,234,.55);font-size:.73rem;font-weight:500;cursor:pointer;transition:var(--t)}
+.rpill:hover,.rpill.on{background:rgba(212,135,74,.1);border-color:#D4874A;color:#F7F2EA}
+.h-sub{font-size:.8rem;color:rgba(247,242,234,.38);max-width:360px;line-height:1.72;margin:0 auto 2rem}
+.ctas{display:flex;gap:.55rem;flex-wrap:wrap;justify-content:center}
+.btn-p{padding:.75rem 1.65rem;border-radius:10px;border:none;background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;font-size:.8rem;font-weight:700;cursor:pointer;transition:var(--ts);box-shadow:0 4px 16px rgba(212,135,74,.28)}
+.btn-p:hover{filter:brightness(1.07);transform:translateY(-2px)}
+.btn-g{padding:.75rem 1.65rem;border-radius:10px;background:transparent;border:1px solid rgba(184,115,51,.26);color:rgba(247,242,234,.5);font-size:.8rem;cursor:pointer;transition:var(--t)}
+.btn-g:hover{color:#F7F2EA;border-color:#B87333}
+.h-stats{display:flex;gap:2.2rem;flex-wrap:wrap;justify-content:center;margin-top:3.2rem;padding-top:2rem;border-top:1px solid rgba(184,115,51,.11)}
+.sn{font-family:var(--fd);font-size:1.9rem;font-weight:300;color:#F0B429;line-height:1}
+.sl{font-size:.57rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(247,242,234,.3);margin-top:.14rem}
+
+/* Pricing on landing */
+.land-pricing{background:#1A1210;border-top:1px solid rgba(184,115,51,.1);padding:3.5rem 1.5rem}
+.lp-in{max-width:980px;margin:0 auto}
+.land-sec-eye{font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;color:#B87333;margin-bottom:.5rem}
+.land-sec-h{font-family:var(--fd);font-size:clamp(1.4rem,3.5vw,2rem);font-weight:300;color:#F7F2EA;line-height:1.22;margin-bottom:.5rem}
+.land-sec-sub{font-size:.78rem;color:rgba(247,242,234,.38);max-width:440px;line-height:1.68;margin-bottom:1.8rem}
+.price-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.6rem}
+.pc{background:rgba(255,255,255,.03);border:1px solid rgba(184,115,51,.1);border-radius:13px;padding:1.3rem 1.1rem;cursor:pointer;transition:var(--t);position:relative;overflow:hidden}
+.pc:hover{border-color:rgba(212,135,74,.28);background:rgba(212,135,74,.04);transform:translateY(-2px)}
+.pc.hero-p{border-color:rgba(212,135,74,.38);background:rgba(212,135,74,.05)}
+.pc.hero-p::before{content:'BEST VALUE';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#D4874A,#F0B429);color:#000;font-size:.54rem;font-weight:800;letter-spacing:.14em;padding:2px 10px;border-radius:0 0 7px 7px}
+.pc-tier{font-size:.57rem;letter-spacing:.2em;text-transform:uppercase;color:#B87333;margin-bottom:.28rem}
+.pc-price{font-family:var(--fd);font-size:2.2rem;font-weight:300;color:#F0B429;line-height:1}
+.pc-cycle{font-size:.63rem;color:rgba(247,242,234,.28);margin-bottom:.65rem}
+.pc-hook{font-size:.68rem;color:#D4874A;font-style:italic;line-height:1.5;margin-bottom:.75rem;min-height:2rem}
+.pc-feats{list-style:none;display:flex;flex-direction:column;gap:.28rem;margin-bottom:.9rem}
+.pc-feats li{font-size:.66rem;color:rgba(247,242,234,.4);display:flex;gap:.3rem;align-items:flex-start;line-height:1.38}
+.pc-feats li::before{content:'✓';color:#006d43;font-weight:700;flex-shrink:0}
+.pc-btn{width:100%;padding:.62rem;border-radius:8px;border:none;font-size:.7rem;font-weight:700;cursor:pointer;transition:var(--ts)}
+.pc-btn.hot{background:linear-gradient(135deg,#D4874A,#F0B429);color:#000}
+.pc-btn.cold{background:transparent;border:1px solid rgba(212,135,74,.22);color:rgba(247,242,234,.45)}
+.pc-btn.cold:hover{color:#F7F2EA;border-color:#D4874A}
+
+/* Story */
+.land-story{background:#030303;border-top:1px solid rgba(184,115,51,.1);padding:4rem 1.5rem;text-align:center}
+.ls-in{max-width:660px;margin:0 auto}
+.ls-h{font-family:var(--fd);font-size:clamp(1.7rem,4vw,2.4rem);font-weight:300;color:#F7F2EA;line-height:1.2;margin-bottom:1.3rem}
+.ls-h em{color:#D4874A;font-style:italic}
+.ls-p{font-size:.82rem;color:rgba(247,242,234,.38);line-height:1.88;margin-bottom:.85rem}
+.ls-rule{height:1px;width:55px;background:#B87333;opacity:.28;margin:1.6rem auto}
+.ls-verse{font-family:var(--fd);font-size:.95rem;font-style:italic;color:#B87333;opacity:.55}
+
+/* Footer */
+.land-footer{background:#1A1210;border-top:1px solid rgba(184,115,51,.1);padding:3rem 1.5rem 2rem}
+.lf-in{max-width:1060px;margin:0 auto}
+.lf-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:2.4rem;margin-bottom:2.4rem}
+.lf-wm{font-family:var(--fd);font-size:1.75rem;font-weight:300;letter-spacing:.22em;color:#F7F2EA;margin-bottom:.55rem}
+.lf-wm .o{color:#D4874A;font-style:italic}
+.lf-desc{font-size:.7rem;color:rgba(247,242,234,.28);line-height:1.78;max-width:255px;margin-bottom:.9rem}
+.lf-col-t{font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:#B87333;margin-bottom:.68rem;opacity:.7}
+.lf-links{list-style:none;display:flex;flex-direction:column;gap:.38rem}
+.lf-links a{font-size:.7rem;color:rgba(247,242,234,.28);text-decoration:none;cursor:pointer;transition:color .14s}
+.lf-links a:hover{color:#F7F2EA}
+.lf-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.55rem;padding-top:1.4rem;border-top:1px solid rgba(184,115,51,.07)}
+.lf-copy{font-size:.62rem;color:rgba(247,242,234,.18)}
+.lf-kick{font-family:var(--fd);font-size:.82rem;font-style:italic;color:#B87333;opacity:.4}
+
+/* Language picker in footer */
+.lang-footer{display:flex;gap:.32rem;margin-top:.5rem}
+.lang-pill{padding:.24rem .58rem;border-radius:20px;border:1px solid rgba(184,115,51,.18);background:transparent;color:rgba(247,242,234,.32);font-size:.67rem;cursor:pointer;transition:var(--t)}
+.lang-pill.on{border-color:#D4874A;color:#F7F2EA;background:rgba(212,135,74,.08)}
+
+/* ═══════════════════════════════════════
+   ONBOARDING
+═══════════════════════════════════════ */
+#onboarding{background:#030303;color:#F7F2EA;min-height:100svh;justify-content:center;align-items:center}
+.ob-wrap{width:100%;max-width:430px;padding:2rem 1.5rem;margin:auto}
+.ob-logo{text-align:center;margin-bottom:1.6rem;font-family:var(--fd);font-size:1.65rem;font-weight:300;letter-spacing:.22em}
+.ob-logo .o{color:#D4874A;font-style:italic}
+.ob-prog{display:flex;gap:.35rem;justify-content:center;margin-bottom:1.25rem}
+.ob-d{width:22px;height:3px;border-radius:2px;background:rgba(212,135,74,.18);transition:background .2s}
+.ob-d.on{background:#D4874A}
+.ob-langs{display:flex;gap:.32rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.2rem}
+.ob-lp{padding:.26rem .68rem;border-radius:20px;border:1px solid rgba(184,115,51,.18);background:transparent;color:rgba(247,242,234,.38);font-size:.68rem;cursor:pointer;transition:var(--t)}
+.ob-lp.on{border-color:#D4874A;color:#F7F2EA;background:rgba(212,135,74,.08)}
+.ob-step{display:none}.ob-step.on{display:block}
+.ob-card{background:rgba(255,255,255,.03);border:1px solid rgba(184,115,51,.13);border-radius:16px;padding:1.65rem}
+.ob-h{font-family:var(--fd);font-size:1.45rem;font-weight:300;text-align:center;margin-bottom:.28rem;color:#F7F2EA}
+.ob-s{font-size:.75rem;color:rgba(247,242,234,.36);text-align:center;margin-bottom:1.4rem;line-height:1.62}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:1.1rem}
+.ro{background:rgba(255,255,255,.03);border:1px solid rgba(184,115,51,.1);border-radius:10px;padding:.9rem .75rem;text-align:center;cursor:pointer;transition:var(--t)}
+.ro:hover,.ro.on{border-color:#D4874A;background:rgba(212,135,74,.06)}
+.ro-ic{font-size:1.35rem;margin-bottom:.32rem}
+.ro-lb{font-size:.73rem;font-weight:600;color:#F7F2EA}
+.ro-ds{font-size:.6rem;color:rgba(247,242,234,.32);margin-top:.1rem}
+.gmail-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;padding:.78rem;background:#fff;color:#1b1c1c;border:none;border-radius:9px;font-size:.82rem;font-weight:500;cursor:pointer;margin-bottom:.82rem;transition:background .14s}
+.gmail-btn:hover{background:#f5f3f3}
+.ob-or{display:flex;align-items:center;gap:.6rem;margin:.7rem 0;color:rgba(247,242,234,.2);font-size:.7rem}
+.ob-or::before,.ob-or::after{content:'';flex:1;height:1px;background:rgba(184,115,51,.1)}
+.fg{margin-bottom:.88rem}
+.fl{display:block;font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#B87333;margin-bottom:.36rem;opacity:.82}
+.fi{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(184,115,51,.14);border-radius:8px;padding:.64rem .82rem;color:#F7F2EA;font-size:.82rem;outline:none;transition:border .16s,background .16s}
+.fi:focus{border-color:#D4874A;background:rgba(212,135,74,.04)}
+select.fi option{background:#1A1210;color:#F7F2EA}
+.btn-full{width:100%;padding:.8rem;border-radius:9px;border:none;background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;font-size:.82rem;font-weight:700;cursor:pointer;transition:var(--ts)}
+.btn-full:hover{filter:brightness(1.06)}
+.ob-back{text-align:center;margin-top:.62rem;font-size:.7rem;color:rgba(247,242,234,.28);cursor:pointer;transition:color .14s}
+.ob-back:hover{color:#F7F2EA}
+.ob-plan-box{background:rgba(212,135,74,.06);border:1px solid rgba(212,135,74,.16);border-radius:9px;padding:.85rem;margin-bottom:.85rem}
+.ob-plan-tier{font-size:.55rem;text-transform:uppercase;letter-spacing:.14em;color:#B87333;margin-bottom:.2rem}
+.ob-plan-name{font-size:.84rem;font-weight:700;color:#F7F2EA;margin-bottom:.16rem}
+.ob-plan-why{font-size:.68rem;color:rgba(247,242,234,.36);line-height:1.5;margin-bottom:.52rem}
+.ob-plan-row{display:flex;gap:.35rem}
+
+/* ═══════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════ */
+#app{background:var(--bg);color:var(--text)}
+.shell{display:flex;height:100svh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:216px;flex-shrink:0;
+  background:linear-gradient(175deg,#001b44 0%,#002254 100%);
+  display:flex;flex-direction:column;overflow-y:auto;transition:width .2s;
+}
+[data-theme="dark"] .sidebar{background:linear-gradient(175deg,#0c1829 0%,#0f2040 100%)}
+.sb-head{padding:1.05rem .95rem .9rem;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-wm{font-family:var(--fd);font-size:1.3rem;font-weight:300;letter-spacing:.2em;color:#fff;display:flex;align-items:baseline}
+.sb-wm .o{color:#D4874A;font-style:italic}
+.sb-role-chip{display:inline-flex;align-items:center;gap:.3rem;margin-top:.32rem;font-size:.54rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.07);color:rgba(174,198,255,.65)}
+/* Role-specific chip colours */
+.chip-shipper{background:rgba(89,222,155,.12);color:#59de9b}
+.chip-carrier{background:rgba(251,188,0,.12);color:#fbbc00}
+.chip-broker{background:rgba(174,198,255,.1);color:#aec6ff}
+.chip-dispatcher{background:rgba(212,135,74,.12);color:#D4874A}
+.sb-nav{flex:1;padding:.62rem .52rem}
+.nav-grp{font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(174,198,255,.28);padding:.46rem .58rem .2rem;margin-top:.4rem}
+.ni{display:flex;align-items:center;gap:.52rem;padding:.48rem .62rem;border-radius:8px;cursor:pointer;transition:var(--t);color:rgba(174,198,255,.52);font-size:.75rem;font-weight:500;margin-bottom:.04rem}
+.ni:hover{background:rgba(255,255,255,.07);color:#fff}
+.ni.on{background:rgba(255,255,255,.12);color:#fff;font-weight:600}
+.ni-ic{font-size:.85rem;width:15px;text-align:center;flex-shrink:0}
+.sb-foot{padding:.82rem;border-top:1px solid rgba(255,255,255,.06)}
+.sb-user{display:flex;align-items:center;gap:.55rem}
+.sb-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#D4874A,#B87333);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0}
+.sb-un{font-size:.71rem;font-weight:600;color:rgba(255,255,255,.75)}
+.sb-ue{font-size:.58rem;color:rgba(174,198,255,.35)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+
+/* ── TOPBAR ── */
+.topbar{
+  height:52px;flex-shrink:0;
+  background:rgba(251,249,248,.9);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;padding:0 1.3rem;gap:.75rem;
+  position:sticky;top:0;z-index:40;
+}
+[data-theme="dark"] .topbar{background:rgba(17,17,17,.88)}
+.tb-title{font-family:var(--fd);font-size:1rem;font-weight:300;letter-spacing:.05em;flex:1;color:var(--text);white-space:nowrap}
+
+/* Role switcher */
+.role-sw{display:flex;gap:.2rem;background:var(--surf-hi);border-radius:8px;padding:3px;flex-shrink:0}
+.rs{padding:.24rem .6rem;border-radius:6px;border:none;background:transparent;font-size:.66rem;font-weight:600;color:var(--muted);cursor:pointer;transition:var(--t);white-space:nowrap}
+.rs.on{background:var(--card);color:var(--navy);box-shadow:var(--shadow-sm)}
+
+/* Controls */
+.tb-ctrl{display:flex;align-items:center;gap:.45rem;flex-shrink:0}
+
+/* Language toggle */
+.lang-toggle{display:flex;gap:.18rem;background:var(--surf-hi);border-radius:7px;padding:2px}
+.lt{padding:.22rem .45rem;border-radius:5px;border:none;background:transparent;font-size:.63rem;font-weight:600;color:var(--muted);cursor:pointer;transition:var(--t)}
+.lt.on{background:var(--card);color:var(--navy);box-shadow:var(--shadow-sm)}
+
+/* Dark/light toggle */
+.theme-tog{
+  width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;
+  background:var(--surf-hi);position:relative;transition:background .2s;flex-shrink:0;
+}
+.theme-tog.dark{background:#001b44}
+[data-theme="dark"] .theme-tog{background:rgba(212,135,74,.25)}
+.tt-k{
+  position:absolute;width:14px;height:14px;border-radius:50%;
+  top:3px;left:3px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.56rem;transition:left .2s ease;pointer-events:none;
+}
+.theme-tog.dark .tt-k{left:19px}
+
+/* ── CANVAS ── */
+.canvas{flex:1;overflow-y:auto;padding:1.3rem;background:var(--bg)}
+.page{display:none;animation:up .2s ease both}
+.page.on{display:block}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:.65rem;margin-bottom:1.35rem}
+.kpi{background:var(--card);border-radius:12px;padding:.88rem .95rem;box-shadow:var(--shadow-sm);transition:var(--t)}
+.kpi:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.kpi-label{font-family:var(--fi);font-size:.56rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.28rem}
+.kpi-val{font-family:var(--fd);font-size:2rem;font-weight:300;line-height:1;color:var(--navy)}
+.kpi-val.ok{color:var(--ok)}.kpi-val.em{color:#D4874A}.kpi-val.warn{color:var(--warn)}
+.kpi-sub{font-family:var(--fi);font-size:.6rem;color:var(--subtle);margin-top:.14rem}
+.kpi-delta{font-family:var(--fi);font-size:.62rem;margin-top:.2rem;font-weight:600}
+.kpi-delta.up{color:var(--ok)}.kpi-delta.up::before{content:'↑ '}
+.kpi-delta.dn{color:var(--err)}.kpi-delta.dn::before{content:'↓ '}
+
+/* ── SECTION ── */
+.sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.sec-t{font-family:var(--fd);font-size:.95rem;font-weight:300;letter-spacing:.04em;color:var(--text)}
+.sec-a{font-family:var(--fi);font-size:.68rem;color:var(--navy);font-weight:600;cursor:pointer;opacity:.7;transition:opacity .14s;text-decoration:none}
+.sec-a:hover{opacity:1}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:12px;padding:1.1rem;box-shadow:var(--shadow-sm)}
+.card+.card{margin-top:.7rem}
+.surf{background:var(--surf-lo);border-radius:9px;padding:.82rem}
+
+/* ── FILTER BAR ── */
+.fbar{background:var(--card);border-radius:10px;padding:.72rem .88rem;display:flex;gap:.48rem;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow-sm);margin-bottom:.8rem}
+.fi-app{flex:1;min-width:150px;background:var(--surf-hi);border:none;border-radius:7px;padding:.44rem .78rem;color:var(--text);font-family:var(--fi);font-size:.74rem;outline:none;transition:background .16s,box-shadow .16s}
+.fi-app:focus{background:var(--card);box-shadow:0 0 0 2px rgba(0,27,68,.12)}
+.sel-app{background:var(--surf-hi);border:none;border-radius:7px;padding:.44rem .68rem;color:var(--text);font-family:var(--fi);font-size:.74rem;outline:none;cursor:pointer}
+.sel-app option{background:var(--card)}
+
+/* ── LOAD CARDS ── */
+.lcard{background:var(--card);border-radius:10px;padding:.86rem .98rem;margin-bottom:.48rem;cursor:pointer;transition:var(--t);position:relative;overflow:hidden;box-shadow:var(--shadow-sm)}
+.lcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(#D4874A,#B87333);opacity:0;transition:.14s}
+.lcard:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.lcard:hover::before,.lcard.sel::before{opacity:1}
+.lcard.sel{background:rgba(0,27,68,.025)}
+[data-theme="dark"] .lcard.sel{background:rgba(212,135,74,.04)}
+.lcard.urg{border-left:3px solid var(--err)}
+.lci{display:grid;grid-template-columns:1fr auto;gap:.82rem;align-items:start}
+.lr{display:flex;align-items:center;gap:.52rem;margin-bottom:.4rem;flex-wrap:wrap}
+.lrc{font-weight:700;font-size:.86rem;color:var(--text)}
+.lra{color:#D4874A}
+.lm{display:flex;gap:.72rem;flex-wrap:wrap}
+.lmi{font-family:var(--fi);font-size:.65rem;color:var(--muted)}
+.lrate{font-family:var(--fd);font-size:1.32rem;font-weight:300;color:var(--navy)}
+.lrate-s{font-family:var(--fi);font-size:.6rem;color:var(--subtle);margin-bottom:.45rem}
+.ldesc{font-family:var(--fi);font-size:.7rem;color:var(--muted);margin-top:.55rem;line-height:1.58;font-style:italic;padding-top:.48rem;border-top:1px solid var(--bdr)}
+
+/* ── BADGES ── */
+.badge{font-family:var(--fi);font-size:.58rem;font-weight:700;padding:3px 8px;border-radius:50px;display:inline-flex;align-items:center;gap:.26rem;letter-spacing:.04em}
+.b-ftl{background:var(--pill-info);color:var(--info)}
+.b-ltl{background:var(--pill-ok);color:var(--ok)}
+.b-urg{background:var(--pill-err);color:var(--err)}
+.b-pnd{background:var(--pill-warn);color:var(--warn)}
+.b-trs{background:var(--pill-info);color:var(--info)}
+.b-ok{background:var(--pill-ok);color:var(--ok)}
+.b-new{background:var(--pill-info);color:var(--info)}
+
+/* ── MAP ── */
+.map-box{background:var(--surf-lo);border-radius:12px;overflow:hidden;position:relative;height:355px;margin-bottom:.8rem}
+.map-panel{
+  position:absolute;bottom:.85rem;left:.85rem;
+  background:rgba(0,27,68,.9);backdrop-filter:blur(14px);
+  border-radius:10px;padding:.78rem .9rem;min-width:182px;color:#fff;z-index:5;
+}
+.map-panel-t{font-family:var(--fi);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(174,198,255,.55);margin-bottom:.5rem}
+.net-row{display:flex;justify-content:space-between;font-family:var(--fi);font-size:.66rem;margin-bottom:.3rem}
+.net-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:.6rem}
+
+/* ── TIMELINE ── */
+.tl-item{display:flex;gap:.75rem;margin-bottom:0}
+.tl-spine{display:flex;flex-direction:column;align-items:center}
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.tl-dot.done{background:var(--ok)}
+.tl-dot.now{background:var(--warn);box-shadow:0 0 0 3px var(--warn-bg)}
+.tl-dot.pend{background:var(--surf-hi)}
+.tl-vl{width:2px;flex:1;min-height:22px;margin:2px 0}
+.tl-vl.done{background:var(--pill-ok)}
+.tl-vl.pend{background:var(--surf-hi)}
+.tl-body{flex:1;padding-bottom:.88rem}
+.tl-ev{font-family:var(--fi);font-size:.77rem;font-weight:600;color:var(--text)}
+.tl-ev.pend{color:var(--muted);font-weight:400}
+.tl-ev.now{color:var(--warn)}
+.tl-loc{font-family:var(--fi);font-size:.65rem;color:var(--muted);margin-top:.08rem}
+.tl-t{font-family:var(--fi);font-size:.62rem;color:var(--subtle);padding-left:.42rem;flex-shrink:0;white-space:nowrap}
+
+/* ── PLAN STRIP ── */
+.plan-strip{
+  background:linear-gradient(135deg,rgba(0,27,68,.04),rgba(0,47,108,.02));
+  border:1px solid rgba(184,115,51,.16);border-radius:12px;
+  padding:1.1rem;margin-bottom:1.2rem;
+  display:flex;align-items:center;gap:.88rem;flex-wrap:wrap;
+}
+[data-theme="dark"] .plan-strip{background:rgba(212,135,74,.04);border-color:rgba(212,135,74,.18)}
+.ps-info{flex:1;min-width:175px}
+.ps-label{font-family:var(--fi);font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--copper);margin-bottom:.2rem}
+.ps-msg{font-family:var(--fi);font-size:.76rem;color:var(--text);line-height:1.5}
+.ps-hook{font-family:var(--fi);font-size:.66rem;color:#D4874A;font-style:italic;margin-top:.15rem}
+.pm-row{display:flex;gap:.38rem;flex-wrap:wrap}
+.pm{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:.6rem .8rem;cursor:pointer;transition:var(--t);text-align:center;min-width:75px}
+.pm:hover,.pm.on{border-color:var(--copper);background:rgba(184,115,51,.04)}
+.pm-n{font-family:var(--fi);font-size:.62rem;font-weight:700;color:var(--text)}
+.pm-p{font-family:var(--fd);font-size:.98rem;font-weight:300;color:var(--navy)}
+
+/* ── BUTTONS ── */
+.btn-sm{padding:.3rem .76rem;border-radius:6px;font-family:var(--fi);font-size:.68rem;font-weight:600;cursor:pointer;transition:var(--t);border:none;white-space:nowrap}
+.btn-sm.pri{background:#001b44;color:#fff}
+.btn-sm.pri:hover{background:#002f6c}
+[data-theme="dark"] .btn-sm.pri{background:rgba(174,198,255,.15);color:var(--navy-2)}
+.btn-sm.gho{background:transparent;border:1px solid var(--bdr);color:var(--muted)}
+.btn-sm.gho:hover{color:var(--text);border-color:var(--navy)}
+.btn-sm.ok{background:var(--ok-bg);border:1px solid rgba(0,109,67,.2);color:var(--ok)}
+.btn-sm.err{background:var(--err-bg);border:1px solid rgba(186,26,26,.2);color:var(--err)}
+.btn-sm.em{background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;border:none}
+.btn-sm.em:hover{filter:brightness(1.06)}
+
+/* ── MODAL ── */
+.m-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem}
+.m-box{background:var(--card);border-radius:16px;padding:1.7rem;width:100%;max-width:420px;max-height:90svh;overflow-y:auto;box-shadow:0 24px 48px rgba(0,27,68,.12);animation:up .2s ease}
+[data-theme="dark"] .m-box{box-shadow:0 24px 48px rgba(0,0,0,.45)}
+.m-t{font-family:var(--fd);font-size:1.18rem;font-weight:300;color:var(--text);margin-bottom:.24rem}
+.m-s{font-family:var(--fi);font-size:.73rem;color:var(--muted);margin-bottom:1.3rem;line-height:1.55}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.2rem;right:1.2rem;background:var(--card);border-radius:10px;padding:.76rem 1.05rem;font-family:var(--fi);font-size:.76rem;color:var(--text);z-index:200;transform:translateY(10px);opacity:0;transition:all .2s;max-width:285px;pointer-events:none;box-shadow:var(--shadow);border:1px solid var(--bdr)}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.s{border-color:rgba(0,109,67,.3)}
+.toast.e{border-color:rgba(186,26,26,.3)}
+.toast.i{border-color:rgba(0,27,68,.25)}
+
+/* ── CERT TRACKS ── */
+.cert-track{background:var(--card);border-radius:12px;box-shadow:var(--shadow-sm);margin-bottom:.55rem;overflow:hidden}
+.cert-hdr{display:flex;align-items:center;justify-content:space-between;padding:.88rem 1.05rem;cursor:pointer;transition:background .14s}
+.cert-hdr:hover{background:var(--surf-lo)}
+.cert-ic{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.98rem;margin-right:.6rem;flex-shrink:0}
+.c-row{padding:.62rem 1.05rem;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .12s}
+.c-row:hover{background:var(--surf-lo)}
+
+/* ════════════════════════════════════════
+   MISSION CONTROL — Vessel Bridge
+════════════════════════════════════════ */
+#mc{
+  background:var(--mc-void);
+  min-height:100svh;
+  overflow-y:auto;
+  color:#e0f4ff;
+  font-family:var(--fi);
+  position:relative;
+}
+/* Ambient scan line */
+#mc::before{
+  content:'';position:fixed;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,191,255,.4),transparent);
+  animation:scan 8s linear infinite;pointer-events:none;z-index:1;
+}
+/* Ocean grid overlay */
+#mc::after{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--mc-grid) 1px,transparent 1px),linear-gradient(90deg,var(--mc-grid) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+.mc-inner{position:relative;z-index:2;min-height:100svh;display:flex;flex-direction:column}
+
+/* MC topbar */
+.mc-topbar{
+  height:56px;display:flex;align-items:center;padding:0 1.8rem;
+  border-bottom:1px solid var(--mc-border);
+  background:rgba(2,10,18,.88);backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:50;
+}
+.mc-logo{font-family:var(--fd);font-size:1.2rem;font-weight:300;letter-spacing:.2em;color:#e0f4ff;display:flex;align-items:baseline}
+.mc-logo .o{color:#D4874A;font-style:italic}
+.mc-badge{font-size:.56rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:rgba(0,191,255,.08);color:rgba(0,191,255,.65);border:1px solid var(--mc-border);margin-left:1rem}
+.mc-clock{font-family:'Courier New',monospace;font-size:.78rem;color:rgba(0,191,255,.5);margin-left:auto;animation:blink 1s step-end infinite}
+.mc-status{display:flex;align-items:center;gap:.35rem;font-size:.62rem;color:var(--mc-green);margin-left:1.2rem}
+.mc-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--mc-green);box-shadow:0 0 8px var(--mc-green);animation:pulse 2s infinite;flex-shrink:0}
+
+/* MC canvas */
+.mc-canvas{flex:1;padding:1.5rem 1.8rem;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;gap:1rem}
+
+/* MC card */
+.mc-card{
+  background:rgba(10,22,40,.6);border:1px solid var(--mc-border);
+  border-radius:12px;padding:1.2rem;
+  box-shadow:0 4px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(0,191,255,.06);
+  position:relative;overflow:hidden;
+}
+.mc-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--mc-border),transparent)}
+.mc-card-t{font-size:.56rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(0,191,255,.5);margin-bottom:.6rem}
+.mc-card.span2{grid-column:span 2}
+.mc-card.span3{grid-column:span 3}
+
+/* MC KPI numbers */
+.mc-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:.7rem;margin-bottom:.85rem}
+.mc-kpi{background:rgba(10,22,40,.8);border:1px solid var(--mc-border);border-radius:10px;padding:.8rem .9rem;text-align:center;transition:var(--t)}
+.mc-kpi:hover{border-color:rgba(0,191,255,.25);animation:glow-pulse 2s infinite}
+.mc-kpi-v{font-family:var(--fd);font-size:2.2rem;font-weight:300;line-height:1;color:var(--mc-blue);text-shadow:0 0 20px rgba(0,191,255,.4)}
+.mc-kpi-v.ok{color:var(--mc-green);text-shadow:0 0 20px rgba(0,229,160,.3)}
+.mc-kpi-v.warn{color:var(--mc-amber);text-shadow:0 0 20px rgba(255,140,0,.3)}
+.mc-kpi-v.err{color:var(--mc-red);text-shadow:0 0 20px rgba(255,58,58,.3)}
+.mc-kpi-l{font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(0,191,255,.4);margin-top:.14rem}
+.mc-kpi-sub{font-size:.6rem;color:rgba(0,229,160,.55);margin-top:.1rem}
+
+/* MC map */
+.mc-map-bg{background:rgba(0,8,20,.8);border-radius:9px;overflow:hidden;position:relative;height:260px}
+.mc-map-bg svg{width:100%;height:100%}
+
+/* MC agent grid */
+.mc-agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.5rem}
+.mc-agent{
+  background:rgba(10,22,40,.8);border:1px solid var(--mc-border);
+  border-radius:8px;padding:.7rem .8rem;transition:var(--t);
+}
+.mc-agent:hover{border-color:rgba(0,191,255,.2)}
+.mc-agent-name{font-size:.72rem;font-weight:600;color:#e0f4ff;margin-bottom:.18rem}
+.mc-agent-desc{font-size:.58rem;color:rgba(0,191,255,.4);line-height:1.4;margin-bottom:.45rem}
+.mc-agent-st{font-size:.56rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.mc-agent-st.live{color:var(--mc-green)}
+.mc-agent-st.build{color:var(--mc-amber)}
+.mc-agent-st.pend{color:rgba(0,191,255,.38)}
+
+/* MC envoy banner */
+.mc-envoy{
+  background:linear-gradient(135deg,rgba(0,191,255,.06),rgba(0,191,255,.02));
+  border:1px solid rgba(0,191,255,.18);border-radius:12px;padding:1.2rem 1.4rem;
+  display:flex;align-items:center;gap:1rem;
+  box-shadow:0 0 30px rgba(0,191,255,.06),inset 0 1px 0 rgba(0,191,255,.08);
+}
+.mc-envoy-ic{font-size:2.2rem;flex-shrink:0;text-shadow:0 0 20px rgba(0,191,255,.5)}
+.mc-envoy-t{font-size:.56rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(0,191,255,.55);margin-bottom:.28rem}
+.mc-envoy-name{font-size:.92rem;font-weight:700;color:#e0f4ff;margin-bottom:.22rem}
+.mc-envoy-desc{font-size:.7rem;color:rgba(0,191,255,.45);line-height:1.6}
+.mc-envoy-status{text-align:right;flex-shrink:0}
+.mc-st-live{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mc-green);margin-bottom:.3rem}
+.mc-next{font-size:.62rem;color:rgba(0,191,255,.38);margin-bottom:.5rem}
+
+/* MC corridor bars */
+.mc-corr-item{display:flex;align-items:center;gap:.75rem;margin-bottom:.55rem}
+.mc-corr-name{font-size:.66rem;color:rgba(0,191,255,.6);width:140px;flex-shrink:0;font-family:'Courier New',monospace}
+.mc-corr-track{flex:1;height:4px;background:rgba(0,191,255,.08);border-radius:2px;overflow:hidden}
+.mc-corr-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--mc-blue),var(--mc-green))}
+.mc-corr-val{font-size:.64rem;color:var(--mc-green);width:35px;text-align:right;font-family:'Courier New',monospace;font-weight:700}
+
+/* MC fraud feed */
+.mc-log-item{display:flex;align-items:flex-start;gap:.55rem;padding:.5rem 0;border-bottom:1px solid rgba(0,191,255,.05)}
+.mc-log-ic{font-size:.85rem;flex-shrink:0;margin-top:.05rem}
+.mc-log-msg{font-family:'Courier New',monospace;font-size:.64rem;color:rgba(0,191,255,.55);line-height:1.45;flex:1}
+.mc-log-t{font-family:'Courier New',monospace;font-size:.58rem;color:rgba(0,191,255,.25);flex-shrink:0}
+.mc-log-item.alert .mc-log-msg{color:var(--mc-amber)}
+.mc-log-item.critical .mc-log-msg{color:var(--mc-red)}
+.mc-log-item.ok .mc-log-msg{color:var(--mc-green)}
+
+/* MC investor panel */
+.mc-invest-row{display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid rgba(0,191,255,.05)}
+.mc-invest-label{font-size:.66rem;color:rgba(0,191,255,.5)}
+.mc-invest-val{font-family:'Courier New',monospace;font-size:.74rem;font-weight:700;color:var(--mc-green)}
+
+/* MC access denied (shown to non-admin) */
+.mc-deny{
+  min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--mc-void);color:#e0f4ff;text-align:center;
+  position:relative;z-index:2;
+}
+.mc-deny-ic{font-size:3rem;margin-bottom:1.2rem;text-shadow:0 0 30px rgba(255,58,58,.5)}
+.mc-deny-t{font-family:var(--fd);font-size:1.6rem;font-weight:300;margin-bottom:.6rem}
+.mc-deny-s{font-size:.78rem;color:rgba(0,191,255,.45);line-height:1.65;max-width:340px;margin-bottom:1.4rem}
+
+/* MC access prompt */
+.mc-access-box{background:rgba(10,22,40,.8);border:1px solid var(--mc-border);border-radius:14px;padding:1.5rem;width:100%;max-width:360px;margin-top:1rem}
+.mc-access-t{font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(0,191,255,.5);margin-bottom:.8rem;text-align:left}
+.mc-fi{width:100%;background:rgba(0,191,255,.05);border:1px solid var(--mc-border);border-radius:7px;padding:.6rem .8rem;color:#e0f4ff;font-family:'Courier New',monospace;font-size:.8rem;outline:none;margin-bottom:.65rem;transition:border .16s}
+.mc-fi:focus{border-color:rgba(0,191,255,.35)}
+.mc-btn{width:100%;padding:.72rem;border-radius:8px;border:1px solid var(--mc-border);background:rgba(0,191,255,.08);color:rgba(0,191,255,.8);font-size:.76rem;font-weight:700;cursor:pointer;letter-spacing:.08em;transition:var(--t);font-family:var(--fu)}
+.mc-btn:hover{background:rgba(0,191,255,.15);border-color:rgba(0,191,255,.3);color:#00bfff}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .lf-grid{grid-template-columns:1fr 1fr}
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .price-grid{grid-template-columns:1fr 1fr}
+  .mc-kpi-row{grid-template-columns:repeat(3,1fr)}
+  .mc-canvas{grid-template-columns:1fr;grid-template-rows:auto}
+  .mc-card.span2,.mc-card.span3{grid-column:span 1}
+}
+@media(max-width:480px){
+  .price-grid{grid-template-columns:1fr}
+  .lf-grid{grid-template-columns:1fr}
+  .mc-kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ── ROLE ACCENT COLOURS ── */
+[data-role-active="shipper"] .ni.on { background: rgba(240,180,41,.15); color: #F0B429; }
+[data-role-active="shipper"] .sidebar { border-right: 2px solid rgba(240,180,41,.3); }
+[data-role-active="carrier"] .ni.on { background: rgba(0,109,67,.15); color: #006d43; }
+[data-role-active="carrier"] .sidebar { border-right: 2px solid rgba(0,109,67,.3); }
+[data-role-active="broker"] .ni.on { background: rgba(0,27,68,.15); color: #001b44; }
+[data-role-active="broker"] .sidebar { border-right: 2px solid rgba(0,27,68,.3); }
+[data-theme="dark"] [data-role-active="broker"] .ni.on { color: #aec6ff; }
+[data-role-active="dispatcher"] .ni.on { background: rgba(0,191,255,.15); color: #00bfff; }
+[data-role-active="dispatcher"] .sidebar { border-right: 2px solid rgba(0,191,255,.3); }
+
+/* ── BORDER STATUS STRIP ── */
+.border-strip {
+  height: 32px;
+  background: rgba(0,27,68,.04);
+  border-bottom: 1px solid var(--bdr);
+  display: flex;
+  align-items: center;
+  padding: 0 1.3rem;
+  gap: 1.2rem;
+  font-family: var(--fi);
+  font-size: .62rem;
+  color: var(--muted);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .border-strip { background: rgba(255,255,255,.03); }
+.bst-item { display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
+.bst-delay { color: var(--warn); }
+.bst-open { color: var(--ok); }
+.bst-label { color: var(--subtle); font-size: .56rem; letter-spacing: .1em; }
+
+/* ── ROLE SWITCHER TOOLTIPS ── */
+.rs { position: relative; }
+.rs[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--navy);
+  color: #fff;
+  font-size: .6rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ── DARK MODE CONTRAST FIXES ── */
+[data-theme="dark"] .fi { background: rgba(255,255,255,.08); color: var(--text); }
+[data-theme="dark"] .fi-app { background: rgba(255,255,255,.07); color: var(--text); }
+[data-theme="dark"] .fl { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+  LANDING
+════════════════════════════════════════ -->
+<div id="landing" class="scr on" style="scroll-behavior:smooth">
+  <section class="hero" id="sec-hero">
+    <div class="h-glow"></div>
+    <div class="h-grid"></div>
+
+    <div class="au" style="margin-bottom:1.8rem">
+      <svg width="140" height="160" viewBox="0 0 140 130" fill="none">
+        <circle cx="18" cy="36" r="7.5" fill="none" stroke="#B87333" stroke-width="1" opacity=".38"/>
+        <circle cx="18" cy="36" r="2.5" fill="#B87333" opacity=".26"/>
+        <line x1="18" y1="43.5" x2="18" y2="68" stroke="#B87333" stroke-width="1.1" stroke-linecap="round" opacity=".36"/>
+        <path d="M18 52 L8 58" stroke="#B87333" stroke-width=".9" stroke-linecap="round" opacity=".22"/>
+        <path d="M18 52 L32 56" stroke="#B87333" stroke-width="1.1" stroke-linecap="round" opacity=".38"/>
+        <path d="M18 68 L12 86" stroke="#B87333" stroke-width="1" stroke-linecap="round" opacity=".3"/>
+        <path d="M18 68 L24 86" stroke="#B87333" stroke-width="1" stroke-linecap="round" opacity=".3"/>
+        <circle cx="12" cy="87" r="2" fill="#B87333" opacity=".2"/>
+        <circle cx="24" cy="87" r="2" fill="#B87333" opacity=".2"/>
+        <circle cx="122" cy="36" r="7.5" fill="none" stroke="#B87333" stroke-width="1" opacity=".38"/>
+        <circle cx="122" cy="36" r="2.5" fill="#B87333" opacity=".26"/>
+        <line x1="122" y1="43.5" x2="122" y2="68" stroke="#B87333" stroke-width="1.1" stroke-linecap="round" opacity=".36"/>
+        <path d="M122 52 L108 56" stroke="#B87333" stroke-width="1.1" stroke-linecap="round" opacity=".38"/>
+        <path d="M122 52 L132 58" stroke="#B87333" stroke-width=".9" stroke-linecap="round" opacity=".22"/>
+        <path d="M122 68 L116 86" stroke="#B87333" stroke-width="1" stroke-linecap="round" opacity=".3"/>
+        <path d="M122 68 L128 86" stroke="#B87333" stroke-width="1" stroke-linecap="round" opacity=".3"/>
+        <circle cx="116" cy="87" r="2" fill="#B87333" opacity=".2"/>
+        <circle cx="128" cy="87" r="2" fill="#B87333" opacity=".2"/>
+        <circle cx="70" cy="16" r="11" fill="none" stroke="#D4874A" stroke-width=".85" opacity=".42"/>
+        <circle cx="70" cy="16" r="6" fill="#D4874A" opacity=".95"/>
+        <circle cx="70" cy="16" r="2.5" fill="#F7F2EA" opacity=".84"/>
+        <line x1="70" y1="22" x2="70" y2="32" stroke="#F7F2EA" stroke-width="1.9" stroke-linecap="round" opacity=".88"/>
+        <path d="M70 32 L44 42" stroke="#F7F2EA" stroke-width="2.1" stroke-linecap="round" opacity=".86"/>
+        <path d="M70 32 L96 42" stroke="#F7F2EA" stroke-width="2.1" stroke-linecap="round" opacity=".86"/>
+        <line x1="40" y1="42" x2="100" y2="42" stroke="#D4874A" stroke-width="2.7" stroke-linecap="round" opacity=".9"/>
+        <circle cx="40" cy="42" r="3.5" fill="#D4874A" opacity=".9"/>
+        <circle cx="100" cy="42" r="3.5" fill="#D4874A" opacity=".9"/>
+        <line x1="70" y1="32" x2="70" y2="70" stroke="#F7F2EA" stroke-width="2.1" stroke-linecap="round" opacity=".86"/>
+        <path d="M70 70 L54 104" stroke="#F7F2EA" stroke-width="2.4" stroke-linecap="round" opacity=".88"/>
+        <path d="M70 70 L86 104" stroke="#F7F2EA" stroke-width="2.4" stroke-linecap="round" opacity=".88"/>
+        <line x1="48" y1="105" x2="60" y2="105" stroke="#D4874A" stroke-width="2.1" stroke-linecap="round" opacity=".86"/>
+        <line x1="80" y1="105" x2="92" y2="105" stroke="#D4874A" stroke-width="2.1" stroke-linecap="round" opacity=".86"/>
+        <line x1="4" y1="112" x2="136" y2="112" stroke="#B87333" stroke-width=".6" opacity=".14"/>
+        <circle cx="70" cy="112" r="2.8" fill="#D4874A" opacity=".44"/>
+      </svg>
+    </div>
+
+    <div class="wm au au1">K<span class="o">O</span>UM</div>
+    <div class="h-rule au au2"></div>
+    <div class="h-tl au au2" style="font-style:normal;color:#F7F2EA;font-size:clamp(1rem,2.5vw,1.3rem);letter-spacing:.01em;margin-bottom:.6rem">Move your goods. Get paid. Know where your truck is.</div>
+    <div class="h-tl au au2" id="hero-tl" style="font-size:clamp(.72rem,1.6vw,.88rem);opacity:.55">Your load shall be borne. — Isaiah 46:4</div>
+
+    <div class="role-row au au3">
+      <button class="rpill on" onclick="setRole('shipper',this)">📦 Shipper</button>
+      <button class="rpill" onclick="setRole('carrier',this)">🚛 Carrier</button>
+      <button class="rpill" onclick="setRole('broker',this)">🤝 Broker</button>
+      <button class="rpill" onclick="setRole('dispatcher',this)">📡 Dispatcher</button>
+    </div>
+    <p class="h-sub au au3" id="hero-sub">Post loads across 38 African countries. Get bids from verified carriers in minutes. Live GPS. No brokers.</p>
+
+    <div class="ctas au au4">
+      <button class="btn-p" onclick="goOnboard()">Get Started Free</button>
+      <button class="btn-g" onclick="goApp()">View Dashboard →</button>
+    </div>
+
+    <div class="h-stats au au4">
+      <div><div class="sn">38</div><div class="sl">Countries</div></div>
+      <div><div class="sn">8</div><div class="sl">EAC Corridors</div></div>
+      <div><div class="sn">$25B</div><div class="sl">EAC Market</div></div>
+      <div><div class="sn">Apr 1</div><div class="sl">Launch</div></div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="land-pricing" id="sec-pricing">
+    <div class="lp-in">
+      <div class="land-sec-eye">Pricing</div>
+      <h2 class="land-sec-h">The platform that pays<br>for itself on day one.</h2>
+      <p class="land-sec-sub">One empty truck crossing a border costs $500–$3,000. BackhaulAgent finds your return load. The maths is embarrassing.</p>
+      <div class="price-grid">
+        <div class="pc" onclick="goOnboard()">
+          <div class="pc-tier">Arise</div>
+          <div class="pc-price">$0</div><div class="pc-cycle">forever</div>
+          <div class="pc-hook">Start here. No card. No excuses.</div>
+          <ul class="pc-feats"><li>5 loads/month</li><li>2 corridors</li><li>Load board</li><li>1 seat</li></ul>
+          <button class="pc-btn cold">Start Free</button>
+        </div>
+        <div class="pc hero-p" onclick="goOnboard()">
+          <div class="pc-tier">Carrier</div>
+          <div class="pc-price">$29</div><div class="pc-cycle">per month</div>
+          <div class="pc-hook">One backhaul = 6 months paid. BackhaulAgent never stops.</div>
+          <ul class="pc-feats"><li>50 loads/month</li><li>All 8 corridors</li><li>BackhaulAgent</li><li>Live GPS</li><li>DPO mobile money</li><li>Priority support</li></ul>
+          <button class="pc-btn hot">Start Carrier Plan</button>
+        </div>
+        <div class="pc" onclick="goOnboard()">
+          <div class="pc-tier">Broker</div>
+          <div class="pc-price">$99</div><div class="pc-cycle">per month</div>
+          <div class="pc-hook">One fee on a $3k load = 3 months paid.</div>
+          <ul class="pc-feats"><li>Unlimited loads</li><li>Commission management</li><li>Insurance quotes</li><li>5 seats</li></ul>
+          <button class="pc-btn cold">Start Broker</button>
+        </div>
+        <div class="pc" onclick="goOnboard()">
+          <div class="pc-tier">Fleet</div>
+          <div class="pc-price">$299</div><div class="pc-cycle">per month</div>
+          <div class="pc-hook">10 trucks × 2 loads/week = $26k freight. Koum = 1.1%.</div>
+          <ul class="pc-feats"><li>Unlimited everything</li><li>All AI agents</li><li>White-label tracking</li><li>20 seats</li></ul>
+          <button class="pc-btn cold">Start Fleet</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <section class="land-story" id="sec-story">
+    <div class="ls-in">
+      <h2 class="ls-h">We are not building<br><em>a load board for Africa.</em></h2>
+      <p class="ls-p">Every day, 600,000 trucks cross East African borders. More than half return empty. Every day, shippers wait three days for a quote that used to take a phone call. We built Koum from Kigali because the continent moving $1 trillion in goods deserves better than a bulletin board.</p>
+      <p class="ls-p">The EAC Single Customs Bond went live March 23, 2026. $2B in logistics liquidity freed. Koum launches April 1. The timing is not an accident.</p>
+      <div class="ls-rule"></div>
+      <div class="ls-verse">"I will carry you. I will sustain you." — Isaiah 46:4</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="land-footer" id="sec-footer">
+    <div class="lf-in">
+      <div class="lf-grid">
+        <div>
+          <div class="lf-wm">K<span class="o">O</span>UM</div>
+          <p class="lf-desc">Africa's freight intelligence layer. 38 countries. 8 EAC corridors. Built in Kigali by Zaphenath Ltd. April 1, 2026.</p>
+          <div style="margin-top:.9rem">
+            <div class="lf-col-t">Language</div>
+            <div class="lang-footer">
+              <button class="lang-pill on" onclick="setLang('en',this)">🌍 EN</button>
+              <button class="lang-pill" onclick="setLang('fr',this)">🇫🇷 FR</button>
+              <button class="lang-pill" onclick="setLang('sw',this)">🌍 SW</button>
+              <button class="lang-pill" onclick="setLang('rw',this)">🇷🇼 RW</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="lf-col-t">Platform</div>
+          <ul class="lf-links">
+            <li><a onclick="goApp()">Load Board</a></li>
+            <li><a onclick="goApp()">Live Tracking</a></li>
+            <li><a onclick="goApp()">Post a Load</a></li>
+            <li><a onclick="goApp()">Carrier Network</a></li>
+            <li><a onclick="goApp()">Broker Tools</a></li>
+            <li><a onclick="goApp()">Academy</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="lf-col-t">Company</div>
+          <ul class="lf-links">
+            <li><a>About Koum</a></li>
+            <li><a>Zaphenath Ltd</a></li>
+            <li><a>Investor Relations</a></li>
+            <li><a>$150K SAFE Round</a></li>
+            <li><a>Norrsken Kigali</a></li>
+            <li><a>Press</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="lf-col-t">Legal</div>
+          <ul class="lf-links">
+            <li><a>Terms of Service</a></li>
+            <li><a>Privacy Policy</a></li>
+            <li><a>Carrier Agreement</a></li>
+            <li><a>Dispute Resolution</a></li>
+          </ul>
+          <div style="margin-top:1.1rem">
+            <div class="lf-col-t">EAC Corridors</div>
+            <ul class="lf-links" style="margin-top:.4rem">
+              <li><a>🇰🇪→🇷🇼 Mombasa–Kigali</a></li>
+              <li><a>🇹🇿→🇺🇬 Dar–Kampala</a></li>
+              <li><a>🇰🇪→🇧🇮 Nairobi–Bujumbura</a></li>
+              <li><a>+ 5 more corridors</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="lf-bottom">
+        <div class="lf-copy">© 2026 Zaphenath Ltd · Kigali, Rwanda · RDB Registered · koum.africa</div>
+        <div class="lf-kick">קוּם — Arise.</div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ════════════════════════════════════════
+  ONBOARDING
+════════════════════════════════════════ -->
+<div id="onboarding" class="scr">
+  <div class="ob-wrap">
+    <div class="ob-logo">K<span class="o">O</span>UM</div>
+    <div class="ob-prog">
+      <div class="ob-d on" id="od1"></div>
+      <div class="ob-d" id="od2"></div>
+      <div class="ob-d" id="od3"></div>
+    </div>
+    <div class="ob-langs" id="ob-langs-row">
+      <button class="ob-lp on" onclick="setLang('en',this,true)">🌍 English</button>
+      <button class="ob-lp" onclick="setLang('fr',this,true)">🇫🇷 Français</button>
+      <button class="ob-lp" onclick="setLang('sw',this,true)">🌍 Kiswahili</button>
+      <button class="ob-lp" onclick="setLang('rw',this,true)">🇷🇼 Kinyarwanda</button>
+    </div>
+
+    <!-- Step 1: Role -->
+    <div class="ob-step on" id="os1">
+      <div class="ob-card">
+        <div class="ob-h" id="os1-h">Join Koum</div>
+        <div class="ob-s" id="os1-s">Africa's freight intelligence layer.</div>
+        <div class="role-grid">
+          <div class="ro on" id="ro-shipper" onclick="pickRole('shipper')">
+            <div class="ro-ic">📦</div><div class="ro-lb" id="rl-s">Shipper</div><div class="ro-ds" id="rd-s">I move goods</div>
+          </div>
+          <div class="ro" id="ro-carrier" onclick="pickRole('carrier')">
+            <div class="ro-ic">🚛</div><div class="ro-lb" id="rl-c">Carrier</div><div class="ro-ds" id="rd-c">I have trucks</div>
+          </div>
+          <div class="ro" id="ro-broker" onclick="pickRole('broker')">
+            <div class="ro-ic">🤝</div><div class="ro-lb" id="rl-b">Broker</div><div class="ro-ds" id="rd-b">I connect both</div>
+          </div>
+          <div class="ro" id="ro-dispatcher" onclick="pickRole('dispatcher')">
+            <div class="ro-ic">📡</div><div class="ro-lb" id="rl-d">Dispatcher</div><div class="ro-ds" id="rd-d">I manage fleet</div>
+          </div>
+        </div>
+        <button class="btn-full" id="os1-btn" onclick="obStep(2)">Continue →</button>
+        <div class="ob-back" onclick="goLand()">← Back</div>
+      </div>
+    </div>
+
+    <!-- Step 2: Auth -->
+    <div class="ob-step" id="os2">
+      <div class="ob-card">
+        <div class="ob-h" id="os2-h">Create account</div>
+        <div class="ob-s" id="os2-s">Free forever. No credit card.</div>
+        <button class="gmail-btn" onclick="gmailAuth()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.4 30.2 0 24 0 14.6 0 6.6 5.6 2.7 13.7l7.9 6.2C12.3 13.6 17.6 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 25c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.8-2.2 5.2-4.7 6.8l7.3 5.7c4.3-3.9 6.8-9.7 6.8-16.5z"/><path fill="#FBBC04" d="M10.6 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6L2.7 13.2C1 16.5 0 20.1 0 24s1 7.5 2.7 10.8l7.9-6.2z"/><path fill="#E94235" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.3-5.7c-2 1.4-4.6 2.2-7.9 2.2-6.4 0-11.7-4.3-13.6-10.1L2.5 35c3.9 8.1 11.9 13 21.5 13z"/></svg>
+          Continue with Google
+        </button>
+        <div class="ob-or" id="ob-or-txt">or</div>
+        <div class="fg"><label class="fl" id="fl-name">Full Name</label><input class="fi" type="text" placeholder="Your full name"/></div>
+        <div class="fg"><label class="fl" id="fl-email">Email</label><input class="fi" type="email" placeholder="company@email.com"/></div>
+        <div class="fg"><label class="fl" id="fl-pass">Password</label><input class="fi" type="password" placeholder="Min 8 characters"/></div>
+        <div class="fg"><label class="fl" id="fl-ctry">Country</label>
+          <select class="fi">
+            <option>🇷🇼 Rwanda</option><option>🇰🇪 Kenya</option><option>🇹🇿 Tanzania</option>
+            <option>🇺🇬 Uganda</option><option>🇧🇮 Burundi</option><option>🇸🇸 South Sudan</option>
+            <option>🇪🇹 Ethiopia</option><option>🇨🇩 DR Congo</option><option>Other</option>
+          </select></div>
+        <button class="btn-full" id="os2-btn" onclick="obStep(3)">Create Account</button>
+        <div class="ob-back" onclick="obStep(1)">← Back</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Profile -->
+    <div class="ob-step" id="os3">
+      <div class="ob-card">
+        <div class="ob-h" id="os3-h">Set up profile</div>
+        <div class="ob-s" id="os3-s">Help us match you with the right operators.</div>
+        <div class="fg"><label class="fl" id="fl-co">Company</label><input class="fi" placeholder="Company name"/></div>
+        <div class="fg"><label class="fl" id="fl-wa">WhatsApp</label><input class="fi" type="tel" placeholder="+250 7XX XXX XXX"/></div>
+        <div class="fg"><label class="fl" id="fl-corr">Primary Corridor</label>
+          <select class="fi">
+            <option>Mombasa → Kigali</option><option>Dar → Kampala</option>
+            <option>Nairobi → Bujumbura</option><option>Kampala → Juba</option>
+            <option>Multiple corridors</option>
+          </select></div>
+        <div class="ob-plan-box">
+          <div class="ob-plan-tier" id="ob-pt">Recommended Plan</div>
+          <div class="ob-plan-name" id="ob-pn">Carrier — $29/mo</div>
+          <div class="ob-plan-why" id="ob-pw">One return load = 6 months paid.</div>
+          <div class="ob-plan-row">
+            <button class="btn-sm gho" onclick="toast('Free plan. Upgrade anytime.','i')">Stay Free</button>
+            <button class="btn-sm em" onclick="toast('Plan selected. Activate after first load.','s')">Select Plan</button>
+          </div>
+        </div>
+        <button class="btn-full" onclick="finishOb()">Enter Koum →</button>
+        <div class="ob-back" onclick="obStep(2)">← Back</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+  APP DASHBOARD
+════════════════════════════════════════ -->
+<div id="app" class="scr">
+<div class="shell">
+
+  <!-- SIDEBAR — role-specific nav -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-wm">K<span class="o">O</span>UM</div>
+      <div class="sb-role-chip" id="sb-chip">Shipper</div>
+    </div>
+    <nav class="sb-nav" id="sb-nav-content">
+      <!-- Rendered by JS per role -->
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-av" id="sb-av">U</div>
+        <div>
+          <div class="sb-un" id="sb-name">Your Name</div>
+          <div class="sb-ue" id="sb-email">company@email.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="tb-title" id="pg-title">Dashboard</div>
+
+      <!-- Role switcher -->
+      <div class="role-sw" id="role-sw">
+        <button class="rs on" onclick="switchRole('shipper',this)" title="Post loads">📦</button>
+        <button class="rs" onclick="switchRole('carrier',this)" title="Find loads">🚛</button>
+        <button class="rs" onclick="switchRole('broker',this)" title="Manage loads">🤝</button>
+        <button class="rs" onclick="switchRole('dispatcher',this)" title="Fleet control">📡</button>
+      </div>
+
+      <!-- Live indicator -->
+      <div style="display:flex;align-items:center;gap:.25rem;font-family:var(--fi);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ok)">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite"></div>
+        <span id="live-lbl">Live</span>
+      </div>
+
+      <!-- Controls -->
+      <div class="tb-ctrl">
+        <!-- Language toggle -->
+        <div class="lang-toggle" id="app-lang-row">
+          <button class="lt on" onclick="setLang('en',this)">🌍 EN</button>
+          <button class="lt" onclick="setLang('fr',this)">🇫🇷 FR</button>
+          <button class="lt" onclick="setLang('sw',this)">🌍 SW</button>
+          <button class="lt" onclick="setLang('rw',this)">🇷🇼 RW</button>
+        </div>
+        <!-- Dark/Light toggle -->
+        <button class="theme-tog" id="theme-tog" onclick="toggleTheme()" title="Toggle light / dark">
+          <div class="tt-k" id="tt-k">☀️</div>
+        </button>
+        <!-- Mission Control (admin access) -->
+        <button class="btn-sm gho" onclick="goMC()" style="font-size:.62rem;padding:.26rem .62rem">⬡ MC</button>
+      </div>
+
+      <button class="btn-sm em" id="tb-cta" onclick="openM('post-m')" style="padding:.3rem .8rem">+ Post Load</button>
+    </header>
+
+    <!-- BORDER STATUS STRIP -->
+    <div class="border-strip">
+      <span class="bst-label">BORDERS</span>
+      <span class="bst-item"><span>🇰🇪</span><span>Namanga</span><span class="bst-delay">+2h delay</span></span>
+      <span class="bst-item"><span>🇺🇬</span><span>Malaba</span><span class="bst-delay">+45min</span></span>
+      <span class="bst-item"><span>🇷🇼</span><span>Gatuna</span><span class="bst-open">Open</span></span>
+      <span class="bst-item"><span>🇹🇿</span><span>Namanga TZ</span><span class="bst-open">Clear</span></span>
+      <span style="margin-left:auto;color:var(--subtle);font-size:.56rem">BorderAgent · Live</span>
+    </div>
+
+    <!-- PAGE CANVAS -->
+    <div class="canvas" id="app-canvas">
+      <!-- Pages rendered by JS per role -->
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+  MISSION CONTROL
+════════════════════════════════════════ -->
+<div id="mc" class="scr" data-role="mission">
+  <!-- Access check rendered by JS -->
+</div>
+
+<!-- MODALS -->
+<div class="m-ov" id="post-m" style="display:none" onclick="if(event.target===this)closeM('post-m')">
+  <div class="m-box">
+    <div class="m-t" id="mm-post-t">Post a Load</div>
+    <div class="m-s" id="mm-post-s">Live on the board in 60 seconds. FraudAgent verifies automatically.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.68rem">
+      <div class="fg"><label class="fl" id="mm-orig">Origin</label><input class="fi" placeholder="Mombasa"/></div>
+      <div class="fg"><label class="fl" id="mm-dest">Destination</label><input class="fi" placeholder="Kigali"/></div>
+      <div class="fg"><label class="fl" id="mm-wt">Weight MT</label><input class="fi" type="number" placeholder="18"/></div>
+      <div class="fg"><label class="fl" id="mm-rate">Rate USD</label><input class="fi" type="number" placeholder="2400"/></div>
+    </div>
+    <div class="fg"><label class="fl" id="mm-cargo">Cargo</label>
+      <select class="fi"><option>Coffee / Agricultural</option><option>FMCG</option><option>Steel</option><option>Minerals</option><option>Humanitarian</option><option>Petroleum</option><option>Other</option></select></div>
+    <div style="display:flex;gap:.5rem;margin-top:.42rem">
+      <button class="btn-sm gho" style="flex:1;padding:.65rem" onclick="closeM('post-m')" id="mm-cancel">Cancel</button>
+      <button class="btn-sm em" style="flex:2;padding:.65rem" onclick="postLoadM()" id="mm-post">Post Load</button>
+    </div>
+  </div>
+</div>
+
+<div class="m-ov" id="bid-m" style="display:none" onclick="if(event.target===this)closeM('bid-m')">
+  <div class="m-box">
+    <div class="m-t" id="mm-bid-t">Place a Bid</div>
+    <div class="m-s" id="bm-ctx">Mombasa → Kigali · Coffee · 18MT</div>
+    <div class="fg"><label class="fl" id="mm-bid-rate">Your Rate (USD)</label><input class="fi" type="number" id="bid-rate" placeholder="$2,400"/></div>
+    <div class="fg"><label class="fl">Truck</label><input class="fi" placeholder="Volvo FH16 · KBA 772K"/></div>
+    <div class="fg"><label class="fl" id="mm-note">Note</label><textarea class="fi" rows="2" placeholder="Available March 22. GPS tracked."></textarea></div>
+    <div style="background:var(--info-bg);border-radius:7px;padding:.58rem .72rem;margin-bottom:.82rem;font-family:var(--fi);font-size:.68rem;color:var(--info)">
+      💡 InsuranceAgent: Cargo insurance from $18/MT. <span style="cursor:pointer;color:#D4874A" onclick="toast('InsuranceAgent generating quotes...','i')">Get quotes →</span>
+    </div>
+    <div style="display:flex;gap:.48rem">
+      <button class="btn-sm gho" style="flex:1;padding:.62rem" onclick="closeM('bid-m')" id="mm-cancel2">Cancel</button>
+      <button class="btn-sm em" style="flex:2;padding:.62rem" onclick="submitBid()" id="mm-submit">Submit Bid</button>
+    </div>
+  </div>
+</div>
+
+<div class="m-ov" id="upgrade-m" style="display:none" onclick="if(event.target===this)closeM('upgrade-m')">
+  <div class="m-box">
+    <div class="m-t" id="mm-up-t">Upgrade Plan</div>
+    <div class="m-s">Every plan pays for itself. Here is the maths.</div>
+    <div style="display:flex;flex-direction:column;gap:.45rem">
+      <div style="background:var(--surf-lo);border:2px solid #D4874A;border-radius:10px;padding:.85rem;cursor:pointer" onclick="selPlan('Carrier','$29')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--copper)">Most Popular</div><div style="font-weight:700;color:var(--text)">Carrier Plan</div></div>
+          <div style="font-family:var(--fd);font-size:1.35rem;color:var(--navy)">$29/mo</div>
+        </div>
+        <div style="font-family:var(--fi);font-size:.66rem;color:#D4874A;margin-top:.28rem;font-style:italic">One backhaul load = 6 months paid.</div>
+      </div>
+      <div style="background:var(--surf-lo);border:1px solid var(--bdr);border-radius:10px;padding:.85rem;cursor:pointer" onclick="selPlan('Broker','$99')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--copper)">Full Power</div><div style="font-weight:700;color:var(--text)">Broker Plan</div></div>
+          <div style="font-family:var(--fd);font-size:1.35rem;color:var(--navy)">$99/mo</div>
+        </div>
+        <div style="font-family:var(--fi);font-size:.66rem;color:var(--muted);margin-top:.28rem;font-style:italic">One fee on a $3k load = 3 months paid.</div>
+      </div>
+      <div style="background:var(--surf-lo);border:1px solid var(--bdr);border-radius:10px;padding:.85rem;cursor:pointer" onclick="selPlan('Fleet','$299')">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--copper)">Command</div><div style="font-weight:700;color:var(--text)">Fleet Plan</div></div>
+          <div style="font-family:var(--fd);font-size:1.35rem;color:var(--navy)">$299/mo</div>
+        </div>
+        <div style="font-family:var(--fi);font-size:.66rem;color:var(--muted);margin-top:.28rem;font-style:italic">10 trucks × 2 loads/week = $26k. Koum = 1.1%.</div>
+      </div>
+    </div>
+    <button class="btn-sm gho" style="width:100%;padding:.65rem;margin-top:.6rem" onclick="closeM('upgrade-m')" id="mm-not-now">Not now</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+// ───────────────────── DATA ──────────────────────────────────────
+const SB='https://dzpfsoykjpuovmsoekax.supabase.co';
+const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cGZzb3lranB1b3Ztc29la2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTQ2OTMsImV4cCI6MjA4OTE5MDY5M30.cRjYcl2XJTbFq2CozzQxLmMM82QH0OPV_QSqrLLMmXY';
+const F={KE:'🇰🇪',RW:'🇷🇼',TZ:'🇹🇿',UG:'🇺🇬',BI:'🇧🇮',SS:'🇸🇸',ET:'🇪🇹',CD:'🇨🇩'};
+
+const LOADS=[
+  {id:'1',oc:'Mombasa',occ:'KE',dc:'Kigali',dcc:'RW',cargo:'Coffee Beans',kg:18000,type:'FTL',terms:'NET_30',rate:2400,pickup:'2026-03-22',bids:3,desc:'18MT green coffee. KEPHIS cert required. Reefer preferred.'},
+  {id:'2',oc:'Dar es Salaam',occ:'TZ',dc:'Kampala',dcc:'UG',cargo:'FMCG',kg:12500,type:'FTL',terms:'PREPAID',rate:1850,pickup:'2026-03-24',bids:1,desc:'Palletized FMCG — soap, oil, flour. Standard dry van.'},
+  {id:'3',oc:'Nairobi',occ:'KE',dc:'Bujumbura',dcc:'BI',cargo:'Steel Pipes',kg:6200,type:'LTL',terms:'COD',rate:980,pickup:'2026-03-26',bids:0,desc:'Partial, flatbed or curtainsider.'},
+  {id:'4',oc:'Kigali',occ:'RW',dc:'Mombasa',dcc:'KE',cargo:'Coltan Ore',kg:22000,type:'FTL',terms:'LETTER_OF_CREDIT',rate:3100,pickup:'2026-03-28',bids:5,desc:'ITSCI certified. Armed escort available.'},
+  {id:'5',oc:'Kampala',occ:'UG',dc:'Juba',dcc:'SS',cargo:'Humanitarian Aid',kg:8800,type:'FTL',terms:'NET_15',rate:2750,pickup:'2026-03-25',bids:2,desc:'WFP-contracted. UN markings. Expedited clearance.'},
+];
+const BIDS=[
+  {lid:'1',carrier:'East Africa Haulage Ltd',driver:'James Mwangi',truck:'Volvo FH16 · KBA 772K',rate:2250,note:'Mar 22. KEPHIS reefer. 143 loads.',rating:4.8,trips:143,match:94},
+  {lid:'1',carrier:'Nyota Logistics Ltd',driver:'Peter Otieno',truck:'Mercedes Actros · KCB 441F',rate:2400,note:'GPS tracked. On-time. 89 loads.',rating:4.6,trips:89,match:88},
+  {lid:'4',carrier:'MineRun Logistics',driver:'Claude Nkurunziza',truck:'Scania R730 · RAD 112B',rate:3050,note:'Minerals specialist. ITSCI cert.',rating:4.9,trips:67,match:97},
+];
+const BOOKINGS=[
+  {id:'KM-2026-0042',route:'Mombasa → Kigali',cargo:'Coffee',wt:'18MT',carrier:'EA Haulage',st:'in_transit',rate:2250,eta:'Mar 25'},
+  {id:'KM-2026-0039',route:'Dar → Kampala',cargo:'FMCG',wt:'12.5MT',carrier:'Nyota Logistics',st:'delivered',rate:1850,eta:'Delivered'},
+  {id:'KM-2026-0041',route:'Kampala → Juba',cargo:'Humanitarian',wt:'8.8MT',carrier:'TransAfrica',st:'pending',rate:2750,eta:'Mar 29'},
+];
+const DOCS=[
+  {id:'DOC-001',type:'CMR Waybill',bk:'KM-2026-0042',st:'Generated',dt:'Mar 22'},
+  {id:'DOC-002',type:'Customs Declaration',bk:'KM-2026-0042',st:'Generated',dt:'Mar 22'},
+  {id:'DOC-003',type:'KEPHIS Certificate',bk:'KM-2026-0042',st:'Uploaded',dt:'Mar 21'},
+];
+const FLEET_DATA=[
+  {pl:'KBA 772K',type:'Volvo FH16 · Reefer 40T',driver:'James Mwangi',st:'In Transit',load:'KM-2026-0042',gps:'Namanga Border'},
+  {pl:'KCB 441F',type:'Mercedes Actros · Dry 30T',driver:'Peter Otieno',st:'Available',load:'—',gps:'Nairobi Depot'},
+  {pl:'UAF 903H',type:'MAN TGX · Flatbed 35T',driver:'David Kabila',st:'Available',load:'—',gps:'Kampala Depot'},
+];
+const TL_EVS=[
+  {t:'Mar 22, 08:15',loc:'Mombasa Port · Kilindini Gate 7',ev:'Loaded. Cargo verified.',s:'done',cc:'KE'},
+  {t:'Mar 22, 14:30',loc:'Mariakani Weighbridge',ev:'Weighbridge ✅ · 18.2MT · compliant.',s:'done',cc:'KE'},
+  {t:'Mar 23, 06:45',loc:'Nairobi ICD · Embakasi',ev:'KEPHIS cleared. Customs stamped.',s:'done',cc:'KE'},
+  {t:'Mar 23, 19:00',loc:'Namanga Border · Kenya side',ev:'Kenya exit. Tanzania entry.',s:'now',cc:'KE'},
+  {t:'Mar 24, ETA',loc:'Arusha Bypass · Tanzania',ev:'En route via A14.',s:'pend',cc:'TZ'},
+  {t:'Mar 24, ETA',loc:'Isibania Border',ev:'Tanzania exit · Rwanda entry.',s:'pend',cc:'TZ'},
+  {t:'Mar 25, ETA',loc:'Kigali · Gikondo IZ',ev:'Final delivery. POD upload.',s:'pend',cc:'RW'},
+];
+const ACADEMY=[
+  {cert:'EAC Freight Fundamentals',color:'#B87333',ic:'📋',courses:[
+    {n:'EAC Single Customs Territory',dur:'45 min',lv:'Beginner'},
+    {n:'CMR, waybills and manifests',dur:'1h',lv:'Beginner'},
+    {n:'EAC Customs Bond explained',dur:'30 min',lv:'Beginner'},
+    {n:'Weighbridge compliance',dur:'45 min',lv:'Beginner'},
+  ]},
+  {cert:'Carrier Operations Excellence',color:'#D4874A',ic:'🚛',courses:[
+    {n:'Loading and damage prevention',dur:'1h',lv:'Intermediate'},
+    {n:'Long-haul EAC protocols',dur:'1h 30m',lv:'Intermediate'},
+    {n:'GPS and proof of delivery',dur:'30 min',lv:'Beginner'},
+    {n:'Breakdown and emergencies',dur:'45 min',lv:'Intermediate'},
+  ]},
+  {cert:'Cargo Insurance & Risk',color:'#224583',ic:'🛡️',courses:[
+    {n:'ZEP-RE, APA and how to claim',dur:'45 min',lv:'Beginner'},
+    {n:'High-value cargo handling',dur:'1h',lv:'Intermediate'},
+    {n:'WFP/ICRC protocols',dur:'1h',lv:'Intermediate'},
+  ]},
+  {cert:'Freight Brokerage & Compliance',color:'#006d43',ic:'🤝',courses:[
+    {n:'Broker licensing in EAC',dur:'1h 30m',lv:'Intermediate'},
+    {n:'Commission structures',dur:'45 min',lv:'Beginner'},
+    {n:'Rate negotiation',dur:'1h',lv:'Intermediate'},
+    {n:'Dispute management',dur:'45 min',lv:'Intermediate'},
+  ]},
+  {cert:'Dangerous Goods & Specialist',color:'#ba1a1a',ic:'⚠️',courses:[
+    {n:'ADR classifications',dur:'2h',lv:'Advanced'},
+    {n:'Petroleum and minerals transport',dur:'1h 30m',lv:'Advanced'},
+  ]},
+  {cert:'Fleet Management & Business',color:'#F0B429',ic:'📊',courses:[
+    {n:'Financial planning for operators',dur:'1h',lv:'Intermediate'},
+    {n:'Maintenance scheduling',dur:'45 min',lv:'Intermediate'},
+    {n:'Scaling from 1 truck to 10',dur:'1h 30m',lv:'Advanced'},
+  ]},
+];
+const MC_AGENTS=[
+  {n:'FraudAgent',d:'12 risk indicators · auto-blocks',s:'live'},
+  {n:'NotificationAgent',d:'Email + Telegram + WhatsApp',s:'live'},
+  {n:'BackhaulAgent',d:'Return load matching',s:'build'},
+  {n:'MatchAgent',d:'Carrier-load compatibility scoring',s:'pend'},
+  {n:'PricingAgent',d:'Real-time market rate intelligence',s:'pend'},
+  {n:'TrackingAgent',d:'30-min driver pings, live map',s:'pend'},
+  {n:'DocumentAgent',d:'CMR, waybills, customs docs',s:'pend'},
+  {n:'InsuranceAgent',d:'ZEP-RE + APA quotes per load',s:'pend'},
+  {n:'BrokerAgent',d:'Commission + split payments',s:'pend'},
+  {n:'BorderAgent',d:'Real-time border crossing times',s:'pend'},
+  {n:'RouteAgent',d:'Corridor intelligence + delays',s:'pend'},
+  {n:'WeatherAgent',d:'Route weather + road closures',s:'pend'},
+  {n:'AcademyAgent',d:'Course recommendations per user',s:'pend'},
+  {n:'ReportAgent',d:'Weekly investor-ready metrics',s:'pend'},
+  {n:'ZaphenathEnvoy',d:'Orchestrator · 15-min check · Telegram',s:'pend'},
+];
+
+// ───────────────────── I18N ──────────────────────────────────────
+const T={
+en:{
+  tl:'Your load shall be borne. — Isaiah 46:4',
+  hero_sub:{
+    shipper:'Post loads across 38 African countries. Bids from verified carriers in minutes. Live GPS. No brokers.',
+    carrier:"Find loads on 8 EAC corridors. BackhaulAgent finds your return load. Mobile money same day.",
+    broker:'Manage loads for multiple shippers. Transparent commissions. Full digital trail.',
+    dispatcher:'Full fleet visibility from one console. Live GPS on every truck.',
+  },
+  os1_h:'Join Koum',os1_s:"Africa's freight intelligence layer.",
+  os2_h:'Create account',os2_s:'Free forever. No credit card.',
+  os3_h:'Set up profile',os3_s:'Help us match you with the right operators.',
+  rl_s:'Shipper',rd_s:'I move goods',rl_c:'Carrier',rd_c:'I have trucks',rl_b:'Broker',rd_b:'I connect both',rl_d:'Dispatcher',rd_d:'I manage fleet',
+  ob_btn1:'Continue →',ob_btn2:'Create Account',
+  fl_name:'Full Name',fl_email:'Email',fl_pass:'Password',fl_ctry:'Country',
+  fl_co:'Company',fl_wa:'WhatsApp',fl_corr:'Primary Corridor',
+  ob_plan:{
+    shipper:{n:'Carrier — $29/mo',w:'BackhaulAgent finds your return load. One trip = 6 months paid.'},
+    carrier:{n:'Carrier — $29/mo',w:"Never run empty again. BackhaulAgent works 24/7."},
+    broker:{n:'Broker — $99/mo',w:'One commission on a $3k load = 3 months. BrokerAgent tracks every cent.'},
+    dispatcher:{n:'Fleet — $299/mo',w:'10 trucks × 2 loads/week = $26k. Koum = 1.1%.'},
+  },
+  nav_dash:'Dashboard',nav_lb:'Load Board',nav_track:'Tracking',nav_post:'Post Load',
+  nav_bids:'Bids',nav_book:'Bookings',nav_docs:'Documents',nav_plans:'Plans',
+  nav_fleet:'My Fleet',nav_analytics:'Analytics',nav_academy:'Academy',
+  nav_backhaul:'Backhaul',nav_earnings:'Earnings',nav_corridors:'Corridors',
+  nav_commissions:'Commissions',nav_pools:'Load Pools',nav_clients:'Clients',
+  nav_dispatch:'Dispatch',nav_map:'Live Map',nav_drivers:'Drivers',
+  live:'Live',
+  kpi_loads:'Active Loads',kpi_bids:'Open Bids',kpi_transit:'In Transit',
+  kpi_revenue:'Revenue MTD',kpi_rating:'Avg Rating',kpi_trucks:'Active Trucks',
+  kpi_commissions:'Commissions',kpi_pool:'Pool Value',
+  kpi_on_board:'on the board',kpi_awaiting:'awaiting review',kpi_moving:'moving now',
+  plan_lbl:'Current Plan: Arise (Free)',plan_msg:'3 of 5 free loads used.',plan_hook:'Upgrade to Carrier ($29/mo) — one backhaul = 6 months paid.',
+  sec_activity:'Activity',sec_board:'Load Board',sec_bids:'Bids',
+  sec_book:'Bookings',sec_fleet:'Fleet',sec_analytics:'Analytics',
+  sec_plans:'Plans & Pricing',
+  plans_sub:'Every plan pays for itself.',
+  academy_nudge:'Recommended: EAC Freight Fundamentals',
+  academy_sub:'4 courses · 3h · Certified operators get priority matching',
+  mc_access_t:'Mission Control Access',mc_access_s:'Enter ZaphenathEnvoy passphrase to proceed.',
+  mc_placeholder:'Enter passphrase',mc_btn:'Authenticate',
+  mc_wrong:'Access denied. Invalid passphrase.',
+  mc_deny_t:'Restricted Access',mc_deny_s:'Mission Control is the operational nerve centre of Koum. Access is granted by the Orchestrator to authorised personnel only.',
+  mm_post:'Post a Load',mm_post_s:'Live on the board in 60 seconds.',
+  mm_bid:'Place a Bid',mm_cancel:'Cancel',mm_submit:'Submit Bid',mm_not_now:'Not now',
+  mm_orig:'Origin',mm_dest:'Destination',mm_wt:'Weight MT',mm_rate:'Rate USD',mm_cargo:'Cargo',mm_note:'Note',mm_bid_rate:'Your Rate (USD)',mm_up:'Upgrade Plan',
+},
+fr:{
+  tl:'Ta charge sera portée. — Ésaïe 46:4',
+  hero_sub:{
+    shipper:'Publiez des charges dans 38 pays africains. Offres de transporteurs en minutes.',
+    carrier:'Trouvez des charges sur 8 corridors. BackhaulAgent trouve votre retour.',
+    broker:'Gérez les charges de plusieurs expéditeurs. Commissions transparentes.',
+    dispatcher:'Visibilité totale de votre flotte depuis une console.',
+  },
+  os1_h:'Rejoindre Koum',os1_s:'La couche intelligente du fret africain.',
+  os2_h:'Créer un compte',os2_s:'Gratuit pour toujours. Sans carte de crédit.',
+  os3_h:'Configurer le profil',os3_s:'Aidez-nous à vous connecter aux bons opérateurs.',
+  rl_s:'Expéditeur',rd_s:"J'envoie des marchandises",rl_c:'Transporteur',rd_c:"J'ai des camions",rl_b:'Courtier',rd_b:'Je connecte les deux',rl_d:'Dispatcheur',rd_d:'Je gère la flotte',
+  ob_btn1:'Continuer →',ob_btn2:'Créer un compte',
+  fl_name:'Nom complet',fl_email:'E-mail',fl_pass:'Mot de passe',fl_ctry:'Pays',
+  fl_co:'Entreprise',fl_wa:'WhatsApp',fl_corr:'Corridor principal',
+  ob_plan:{
+    shipper:{n:'Transporteur — 29$/mois',w:'Un retour = 6 mois payés.'},
+    carrier:{n:'Transporteur — 29$/mois',w:'Ne roulez plus à vide. BackhaulAgent travaille 24h/24.'},
+    broker:{n:'Courtier — 99$/mois',w:'Une commission sur 3k$ = 3 mois payés.'},
+    dispatcher:{n:'Flotte — 299$/mois',w:'10 camions × 2 chargements = 26k$. Koum = 1.1%.'},
+  },
+  nav_dash:'Tableau de bord',nav_lb:'Bourse de fret',nav_track:'Suivi',nav_post:'Publier',
+  nav_bids:'Offres',nav_book:'Réservations',nav_docs:'Documents',nav_plans:'Abonnements',
+  nav_fleet:'Ma flotte',nav_analytics:'Analytique',nav_academy:'Académie',
+  nav_backhaul:'Retour à vide',nav_earnings:'Revenus',nav_corridors:'Corridors',
+  nav_commissions:'Commissions',nav_pools:'Pools de charge',nav_clients:'Clients',
+  nav_dispatch:'Dispatch',nav_map:'Carte en direct',nav_drivers:'Conducteurs',
+  live:'En direct',
+  kpi_loads:'Charges actives',kpi_bids:'Offres ouvertes',kpi_transit:'En transit',
+  kpi_revenue:'Chiffre mensuel',kpi_rating:'Note moyenne',kpi_trucks:'Camions actifs',
+  kpi_commissions:'Commissions',kpi_pool:'Valeur du pool',
+  kpi_on_board:'en cours',kpi_awaiting:'à examiner',kpi_moving:'en mouvement',
+  plan_lbl:'Plan actuel: Arise (Gratuit)',plan_msg:'3 charges sur 5 utilisées.',plan_hook:'Passer au plan Transporteur (29$/mois).',
+  sec_activity:'Activité',sec_board:'Bourse de fret',sec_bids:'Offres',
+  sec_book:'Réservations',sec_fleet:'Flotte',sec_analytics:'Analytique',sec_plans:'Tarifs',
+  plans_sub:'Chaque plan se rentabilise.',
+  academy_nudge:'Recommandé: Fondamentaux du fret EAC',
+  academy_sub:'4 cours · 3h · Les opérateurs certifiés ont la priorité',
+  mc_access_t:'Accès Mission Control',mc_access_s:'Entrez la phrase secrète ZaphenathEnvoy.',
+  mc_placeholder:'Entrez la phrase secrète',mc_btn:'Authentifier',
+  mc_wrong:'Accès refusé.',mc_deny_t:'Accès restreint',mc_deny_s:"Mission Control est le centre opérationnel de Koum. Accès accordé par l'Orchestrateur.",
+  mm_post:'Publier une charge',mm_post_s:'En ligne en 60 secondes.',
+  mm_bid:'Soumettre une offre',mm_cancel:'Annuler',mm_submit:"Soumettre l'offre",mm_not_now:'Pas maintenant',
+  mm_orig:'Origine',mm_dest:'Destination',mm_wt:'Poids MT',mm_rate:'Tarif USD',mm_cargo:'Cargaison',mm_note:'Note',mm_bid_rate:'Votre tarif (USD)',mm_up:'Améliorer le plan',
+},
+sw:{
+  tl:'Mzigo wako utabebwa. — Isaya 46:4',
+  hero_sub:{
+    shipper:'Chapisha mizigo katika nchi 38 za Afrika. Pata zabuni kutoka kwa wasafirishaji walioidhinishwa.',
+    carrier:'Pata mizigo kwenye njia 8 za EAC. BackhaulAgent anapata mzigo wa kurudi.',
+    broker:'Simamia mizigo ya wasafirishaji wengi. Kamisheni za uwazi.',
+    dispatcher:'Udhibiti kamili wa meli kutoka kwa kiweko kimoja.',
+  },
+  os1_h:'Jiunge na Koum',os1_s:'Safu ya akili ya usafirishaji ya Afrika.',
+  os2_h:'Fungua akaunti',os2_s:'Bila malipo milele. Hakuna kadi ya mkopo.',
+  os3_h:'Sanidi wasifu',os3_s:'Tusaidie kukuunganisha na waendeshaji wanaofaa.',
+  rl_s:'Msafirishaji',rd_s:'Ninatuma bidhaa',rl_c:'Dereva',rd_c:'Nina malori',rl_b:'Dalali',rd_b:'Ninaunganisha vyote',rl_d:'Meneja',rd_d:'Ninasimamia meli',
+  ob_btn1:'Endelea →',ob_btn2:'Fungua akaunti',
+  fl_name:'Jina kamili',fl_email:'Barua pepe',fl_pass:'Nenosiri',fl_ctry:'Nchi',
+  fl_co:'Kampuni',fl_wa:'WhatsApp',fl_corr:'Njia Kuu',
+  ob_plan:{
+    shipper:{n:'Mpango wa Dereva — $29/mwezi',w:'Safari moja ya kurudi = miezi 6 ililipwa.'},
+    carrier:{n:'Mpango wa Dereva — $29/mwezi',w:'BackhaulAgent anafanya kazi 24/7. Safari moja = miezi 6.'},
+    broker:{n:'Mpango wa Dalali — $99/mwezi',w:'Ada moja ya $3,000 = miezi 3 ililipwa.'},
+    dispatcher:{n:'Mpango wa Meli — $299/mwezi',w:'Malori 10 × mizigo 2 = $26k. Koum = 1.1%.'},
+  },
+  nav_dash:'Dashibodi',nav_lb:'Ubao wa Mizigo',nav_track:'Ufuatiliaji',nav_post:'Chapisha',
+  nav_bids:'Zabuni',nav_book:'Uhifadhi',nav_docs:'Hati',nav_plans:'Mipango',
+  nav_fleet:'Meli Yangu',nav_analytics:'Uchambuzi',nav_academy:'Chuo',
+  nav_backhaul:'Mzigo wa Kurudi',nav_earnings:'Mapato',nav_corridors:'Njia',
+  nav_commissions:'Kamisheni',nav_pools:'Vikundi vya Mzigo',nav_clients:'Wateja',
+  nav_dispatch:'Mgawanyo',nav_map:'Ramani ya Moja kwa Moja',nav_drivers:'Madereva',
+  live:'Moja kwa Moja',
+  kpi_loads:'Mizigo Inayotumika',kpi_bids:'Zabuni Wazi',kpi_transit:'Safarini',
+  kpi_revenue:'Mapato ya Mwezi',kpi_rating:'Kiwango cha Wastani',kpi_trucks:'Malori Yanayotumika',
+  kpi_commissions:'Kamisheni',kpi_pool:'Thamani ya Kikundi',
+  kpi_on_board:'kwenye ubao',kpi_awaiting:'inasubiri',kpi_moving:'inasogea',
+  plan_lbl:'Mpango wa Sasa: Arise (Bure)',plan_msg:'Mizigo 3 kati ya 5 imetumika.',plan_hook:'Boresha hadi Carrier ($29/mwezi).',
+  sec_activity:'Shughuli',sec_board:'Ubao wa Mizigo',sec_bids:'Zabuni',
+  sec_book:'Uhifadhi',sec_fleet:'Meli',sec_analytics:'Uchambuzi',sec_plans:'Mipango ya Bei',
+  plans_sub:'Kila mpango unajilipa.',
+  academy_nudge:'Inayopendekezwa: Misingi ya Fret ya EAC',
+  academy_sub:'Kozi 4 · 3h · Waendeshaji waliosajiliwa wana kipaumbele',
+  mc_access_t:'Ufikiaji wa Udhibiti wa Misheni',mc_access_s:'Ingiza msimbo wa ZaphenathEnvoy.',
+  mc_placeholder:'Ingiza msimbo',mc_btn:'Thibitisha',
+  mc_wrong:'Ufikiaji umekataliwa.',mc_deny_t:'Ufikiaji Umezuiwa',mc_deny_s:'Udhibiti wa Misheni ni kituo cha operesheni cha Koum.',
+  mm_post:'Chapisha Mzigo',mm_post_s:'Kwenye ubao kwa sekunde 60.',
+  mm_bid:'Wasilisha Zabuni',mm_cancel:'Ghairi',mm_submit:'Wasilisha Zabuni',mm_not_now:'Sio sasa',
+  mm_orig:'Asili',mm_dest:'Lengwa',mm_wt:'Uzito MT',mm_rate:'Kiwango USD',mm_cargo:'Shehena',mm_note:'Kumbuka',mm_bid_rate:'Kiwango Chako (USD)',mm_up:'Boresha Mpango',
+},
+rw:{
+  tl:"Umurigo wawe uzatwikwa. — Yesaya 46:4",
+  hero_sub:{
+    shipper:"Ohereza imizigo mu bihugu 38 bya Afrika. Ubone ibitero mu minota mike.",
+    carrier:"Shaka imizigo mu nzira 8 za EAC. BackhaulAgent asanga inzira yo gusubira.",
+    broker:"Gucunga imizigo y'abasoze benshi. Amafaranga asobanutse.",
+    dispatcher:"Ugenzura udosiye wawe wose uvuye ku kiweko kimwe.",
+  },
+  os1_h:'Injira muri Koum',os1_s:"Inzira y'ubwenge bw'ubutwererane mu Afrika.",
+  os2_h:'Fungura konti',os2_s:'Urabura buri gihe. Nta karito.',
+  os3_h:'Itegure profil',os3_s:"Dufashe kukuhuza n'abasararaza bakwiye.",
+  rl_s:'Uwoherezaho',rd_s:'Nitwara ibintu',rl_c:'Umushoferi',rd_c:'Ndi na camion',rl_b:'Umuhuza',rd_b:'Ndi umuhuza',rl_d:'Umuyobozi',rd_d:"Ndi n'ubuyobozi",
+  ob_btn1:'Komeza →',ob_btn2:'Fungura konti',
+  fl_name:'Amazina yuzuye',fl_email:'Imeyili',fl_pass:"Ijambo ry'ibanga",fl_ctry:'Igihugu',
+  fl_co:'Sosiyete',fl_wa:'WhatsApp',fl_corr:'Inzira Nkuru',
+  ob_plan:{
+    shipper:{n:"Gahunda ya Umushoferi — $29/ukwezi",w:'Urugendo rumwe rwo gusubira = amezi 6 yishyuwe.'},
+    carrier:{n:"Gahunda ya Umushoferi — $29/ukwezi",w:"BackhaulAgent ikorera 24/7. Urugendo rumwe = amezi 6."},
+    broker:{n:"Gahunda y'Umuhuza — $99/ukwezi",w:"Inyungu imwe kuri $3,000 = amezi 3 yishyuwe."},
+    dispatcher:{n:"Gahunda y'Udosiye — $299/ukwezi",w:"Icamion 10 × imizigo 2/icyumweru = $26k. Koum = 1.1%."},
+  },
+  nav_dash:'Ikibaho',nav_lb:"Isoko ry'Imizigo",nav_track:'Gukurikirana',nav_post:'Shyira Umurigo',
+  nav_bids:'Amafaranga',nav_book:'Ibijyanye',nav_docs:'Inyandiko',nav_plans:'Gahunda',
+  nav_fleet:"Icamion Yanjye",nav_analytics:'Imibare',nav_academy:'Akademi',
+  nav_backhaul:'Inzira yo Gusubira',nav_earnings:'Inyungu',nav_corridors:'Inzira',
+  nav_commissions:'Amafaranga y\'Ubuhuza',nav_pools:"Ibice by'Imizigo",nav_clients:'Abakiriya',
+  nav_dispatch:'Gusendeka',nav_map:'Ikarita Nzima',nav_drivers:'Abashoferi',
+  live:'Nzima',
+  kpi_loads:'Imizigo Mikorwa',kpi_bids:'Amafaranga Afunguye',kpi_transit:'Mu Nzira',
+  kpi_revenue:"Inyungu z'Ukwezi",kpi_rating:'Amanota Hagati',kpi_trucks:'Icamion Zikorwa',
+  kpi_commissions:"Amafaranga y'Ubuhuza",kpi_pool:"Agaciro k'Ikipe",
+  kpi_on_board:'ku isiganwa',kpi_awaiting:'irindirwa',kpi_moving:'igenda',
+  plan_lbl:'Gahunda Ubu: Arise (Bure)',plan_msg:"Imizigo 3 kuri 5 yakoreshejwe.",plan_hook:"Hindura kuri Carrier ($29/ukwezi) — urugendo rumwe = amezi 6.",
+  sec_activity:'Ibikorwa',sec_board:"Isoko ry'Imizigo",sec_bids:'Amafaranga',
+  sec_book:'Ibijyanye',sec_fleet:'Udosiye',sec_analytics:'Imibare',sec_plans:'Gahunda na Ibiciro',
+  plans_sub:'Buri gahunda yishyurira.',
+  academy_nudge:"Isanzwe: Ibanze by'Ubucuruzi bwa EAC",
+  academy_sub:"Amasomo 4 · 3h · Abasararaza bafite icyemezo bafite concern",
+  mc_access_t:'Kwinjira muri Mission Control',mc_access_s:'Injiza ijambo rya ZaphenathEnvoy.',
+  mc_placeholder:'Injiza ijambo',mc_btn:'Kwemeza',
+  mc_wrong:'Kwinjira byanzwe.',mc_deny_t:'Injira Ibanzwe',mc_deny_s:'Mission Control ni ikigo cy\'imirimo cya Koum. Binjira bemewe na Orchestrator gusa.',
+  mm_post:'Shyira Umurigo',mm_post_s:'Ku isiganwa mu masegonda 60.',
+  mm_bid:'Tanga Amafaranga',mm_cancel:'Reka',mm_submit:'Tanga Amafaranga',mm_not_now:'Ntago none',
+  mm_orig:'Intangiriro',mm_dest:"Inshingano",mm_wt:'Uburemere MT',mm_rate:'Igiciro USD',mm_cargo:"Ibintu",mm_note:"Akamenyetso",mm_bid_rate:'Igiciro Cyawe (USD)',mm_up:'Hindura Gahunda',
+},
+};
+
+// ───────────────────── STATE ─────────────────────────────────────
+const S={lang:'en',role:'shipper',theme:'light',selLoad:null,loads:[...LOADS],mcAuth:false};
+
+// ───────────────────── UTILS ─────────────────────────────────────
+const $=id=>document.getElementById(id);
+const t=k=>T[S.lang]?.[k]??T.en[k]??'';
+
+// ───────────────────── SCREENS ───────────────────────────────────
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')}
+function goLand(){show('landing')}
+function goOnboard(){show('onboarding')}
+function goApp(){show('app');initApp()}
+function goMC(){show('mc');renderMC()}
+
+// ───────────────────── LANDING ───────────────────────────────────
+const ROLE_SUB={
+  shipper:{en:'Post loads across 38 African countries. Bids from verified carriers in minutes. Live GPS. No brokers.',fr:'Publiez des charges dans 38 pays africains. Offres de transporteurs en minutes.',sw:'Chapisha mizigo katika nchi 38 za Afrika. Pata zabuni kutoka kwa wasafirishaji.',rw:"Ohereza imizigo mu bihugu 38 bya Afrika. Ubone ibitero mu minota mike."},
+  carrier:{en:"Find loads on 8 EAC corridors. BackhaulAgent finds your return load. Mobile money same day.",fr:'Trouvez des charges sur 8 corridors. BackhaulAgent trouve votre retour.',sw:'Pata mizigo kwenye njia 8 za EAC. BackhaulAgent anapata mzigo wa kurudi.',rw:"Shaka imizigo mu nzira 8 za EAC. BackhaulAgent asanga inzira yo gusubira."},
+  broker:{en:'Manage loads for multiple shippers. Transparent commissions. Full digital trail.',fr:'Gérez les charges de plusieurs expéditeurs. Commissions transparentes.',sw:'Simamia mizigo ya wasafirishaji wengi. Kamisheni za uwazi.',rw:"Gucunga imizigo y'abasoze benshi. Amafaranga asobanutse."},
+  dispatcher:{en:'Full fleet visibility from one console. Live GPS on every truck.',fr:'Visibilité totale de votre flotte depuis une console.',sw:'Udhibiti kamili wa meli kutoka kwa kiweko kimoja.',rw:"Ugenzura udosiye wawe wose uvuye ku kiweko kimwe."},
+};
+function setRole(r,el){
+  S.role=r;
+  document.querySelectorAll('.rpill').forEach(b=>b.classList.remove('on'));
+  if(el)el.classList.add('on');
+  const el2=$('hero-sub');
+  if(el2)el2.textContent=ROLE_SUB[r]?.[S.lang]||ROLE_SUB[r].en;
+}
+
+// ───────────────────── LANGUAGE ──────────────────────────────────
+function setLang(lang,btn,isOb=false){
+  S.lang=lang;
+  // Update all lang toggles
+  const sel=isOb?'.ob-lp':'.lang-pill, .lt, .ob-lp';
+  document.querySelectorAll(sel).forEach(b=>{
+    const oc=b.getAttribute('onclick')||'';
+    b.classList.toggle('on',oc.includes(`'${lang}'`));
+  });
+  // Always sync all toggle types
+  document.querySelectorAll('.lang-pill,.lt,.ob-lp').forEach(b=>{
+    const oc=b.getAttribute('onclick')||'';
+    b.classList.toggle('on',oc.includes(`'${lang}'`));
+  });
+  applyTranslations();
+  setRole(S.role,null);
+  updateObPlan();
+  // Sync app lang select
+  const sel2=$('app-lang-row');
+  if(sel2)sel2.querySelectorAll('.lt').forEach(b=>{
+    b.classList.toggle('on',b.getAttribute('onclick')?.includes(`'${lang}'`));
+  });
+}
+function applyTranslations(){
+  const L=T[S.lang]||T.en;
+  // Hero tagline
+  const tl=$('hero-tl');if(tl)tl.textContent=L.tl;
+  // Ob strings
+  const map={
+    'os1-h':'os1_h','os1-s':'os1_s','os2-h':'os2_h','os2-s':'os2_s',
+    'os3-h':'os3_h','os3-s':'os3_s',
+    'os1-btn':'ob_btn1','os2-btn':'ob_btn2',
+    'rl-s':'rl_s','rd-s':'rd_s','rl-c':'rl_c','rd-c':'rd_c',
+    'rl-b':'rl_b','rd-b':'rd_b','rl-d':'rl_d','rd-d':'rd_d',
+    'fl-name':'fl_name','fl-email':'fl_email','fl-pass':'fl_pass','fl-ctry':'fl_ctry',
+    'fl-co':'fl_co','fl-wa':'fl_wa','fl-corr':'fl_corr',
+    'ob-or-txt':null, // skip
+    // Modal strings
+    'mm-post-t':'mm_post','mm-post-s':'mm_post_s',
+    'mm-bid-t':'mm_bid','mm-cancel':'mm_cancel','mm-cancel2':'mm_cancel',
+    'mm-submit':'mm_submit','mm-not-now':'mm_not_now',
+    'mm-orig':'mm_orig','mm-dest':'mm_dest','mm-wt':'mm_wt',
+    'mm-rate':'mm_rate','mm-cargo':'mm_cargo','mm-note':'mm_note',
+    'mm-bid-rate':'mm_bid_rate',
+    'live-lbl':'live',
+  };
+  Object.entries(map).forEach(([id,key])=>{
+    if(!key)return;
+    const el=$(id);if(el&&L[key])el.textContent=L[key];
+  });
+  // FL labels in modal (they use data-t approach via id)
+  updateObPlan();
+}
+
+// ───────────────────── THEME ─────────────────────────────────────
+function toggleTheme(){
+  S.theme=S.theme==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',S.theme);
+  const btn=$('theme-tog'),knob=$('tt-k');
+  if(btn)btn.classList.toggle('dark',S.theme==='dark');
+  if(knob)knob.textContent=S.theme==='dark'?'🌙':'☀️';
+}
+
+// ───────────────────── ONBOARDING ────────────────────────────────
+function pickRole(r){
+  S.role=r;
+  ['shipper','carrier','broker','dispatcher'].forEach(x=>$('ro-'+x)?.classList.remove('on'));
+  $('ro-'+r)?.classList.add('on');
+  updateObPlan();
+}
+function updateObPlan(){
+  const L=T[S.lang]||T.en;
+  const p=L.ob_plan?.[S.role]||L.ob_plan?.shipper||{n:'Carrier — $29/mo',w:'One trip = 6 months paid.'};
+  const n=$('ob-pn'),w=$('ob-pw');
+  if(n)n.textContent=p.n;
+  if(w)w.textContent=p.w;
+}
+function obStep(n){
+  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('on'));
+  $('os'+n)?.classList.add('on');
+  for(let i=1;i<=3;i++){const d=$('od'+i);if(d)d.classList.toggle('on',i<=n)}
+}
+function gmailAuth(){toast('Google OAuth via Supabase Auth.','i');setTimeout(()=>obStep(3),900)}
+function finishOb(){goApp();toast('Welcome to Koum. Check your email for your guide.','s')}
+
+// ───────────────────── APP ───────────────────────────────────────
+// Role-specific nav configs
+const NAV_CONFIG={
+  shipper:[
+    {grp:'OVERVIEW',items:[
+      {id:'dashboard',ic:'⊞',lk:'nav_dash'},
+      {id:'loadboard',ic:'📋',lk:'nav_lb'},
+      {id:'tracking', ic:'📍',lk:'nav_track'},
+    ]},
+    {grp:'TOOLS',items:[
+      {id:'post',ic:'➕',lk:'nav_post'},
+      {id:'bids',ic:'💬',lk:'nav_bids'},
+      {id:'bookings',ic:'📁',lk:'nav_book'},
+      {id:'docs',ic:'📄',lk:'nav_docs'},
+    ]},
+    {grp:'GROWTH',items:[
+      {id:'analytics',ic:'📊',lk:'nav_analytics'},
+      {id:'plans',ic:'💎',lk:'nav_plans'},
+      {id:'academy',ic:'🎓',lk:'nav_academy'},
+    ]},
+  ],
+  carrier:[
+    {grp:'OVERVIEW',items:[
+      {id:'dashboard',ic:'⊞',lk:'nav_dash'},
+      {id:'loadboard',ic:'📋',lk:'nav_lb'},
+      {id:'tracking', ic:'📍',lk:'nav_track'},
+    ]},
+    {grp:'TOOLS',items:[
+      {id:'backhaul',ic:'🔄',lk:'nav_backhaul'},
+      {id:'bids',ic:'💬',lk:'nav_bids'},
+      {id:'bookings',ic:'📁',lk:'nav_book'},
+      {id:'fleet',ic:'🚛',lk:'nav_fleet'},
+      {id:'docs',ic:'📄',lk:'nav_docs'},
+    ]},
+    {grp:'GROWTH',items:[
+      {id:'earnings',ic:'💰',lk:'nav_earnings'},
+      {id:'corridors',ic:'🗺',lk:'nav_corridors'},
+      {id:'academy',ic:'🎓',lk:'nav_academy'},
+    ]},
+  ],
+  broker:[
+    {grp:'OVERVIEW',items:[
+      {id:'dashboard',ic:'⊞',lk:'nav_dash'},
+      {id:'loadboard',ic:'📋',lk:'nav_lb'},
+      {id:'tracking', ic:'📍',lk:'nav_track'},
+    ]},
+    {grp:'TOOLS',items:[
+      {id:'commissions',ic:'💼',lk:'nav_commissions'},
+      {id:'pools',ic:'🔗',lk:'nav_pools'},
+      {id:'clients',ic:'👥',lk:'nav_clients'},
+      {id:'bids',ic:'💬',lk:'nav_bids'},
+      {id:'docs',ic:'📄',lk:'nav_docs'},
+    ]},
+    {grp:'GROWTH',items:[
+      {id:'analytics',ic:'📊',lk:'nav_analytics'},
+      {id:'plans',ic:'💎',lk:'nav_plans'},
+      {id:'academy',ic:'🎓',lk:'nav_academy'},
+    ]},
+  ],
+  dispatcher:[
+    {grp:'OVERVIEW',items:[
+      {id:'dashboard',ic:'⊞',lk:'nav_dash'},
+      {id:'livemap',ic:'🗺',lk:'nav_map'},
+      {id:'tracking', ic:'📍',lk:'nav_track'},
+    ]},
+    {grp:'OPERATIONS',items:[
+      {id:'fleet',ic:'🚛',lk:'nav_fleet'},
+      {id:'drivers',ic:'👤',lk:'nav_drivers'},
+      {id:'dispatch',ic:'📡',lk:'nav_dispatch'},
+      {id:'corridors',ic:'🔀',lk:'nav_corridors'},
+    ]},
+    {grp:'REPORTS',items:[
+      {id:'analytics',ic:'📊',lk:'nav_analytics'},
+      {id:'docs',ic:'📄',lk:'nav_docs'},
+    ]},
+  ],
+};
+const CHIP_CLS={shipper:'chip-shipper',carrier:'chip-carrier',broker:'chip-broker',dispatcher:'chip-dispatcher'};
+const CHIP_LABEL={shipper:'Shipper',carrier:'Carrier',broker:'Broker',dispatcher:'Dispatcher'};
+
+function initApp(){
+  applyTranslations();
+  document.getElementById('app').setAttribute('data-role-active',S.role);
+  renderNav();
+  renderPages();
+  updateCtaAndChip();
+}
+function updateCtaAndChip(){
+  const L=T[S.lang]||T.en;
+  const chip=$('sb-chip');
+  if(chip){
+    chip.className='sb-role-chip '+CHIP_CLS[S.role];
+    chip.textContent=L['rl_'+S.role[0]]||S.role;
+  }
+  const ctas={shipper:'+ '+L.nav_post,carrier:L.nav_lb,broker:L.nav_commissions,dispatcher:L.nav_map};
+  const cta=$('tb-cta');if(cta)cta.textContent=ctas[S.role]||'+ '+L.nav_post;
+}
+function renderNav(){
+  const cfg=NAV_CONFIG[S.role]||NAV_CONFIG.shipper;
+  const L=T[S.lang]||T.en;
+  const nav=$('sb-nav-content');
+  if(!nav)return;
+  nav.innerHTML=cfg.map(g=>`
+    <div class="nav-grp">${g.grp}</div>
+    ${g.items.map(item=>`
+      <div class="ni${item.id==='dashboard'?' on':''}" id="ni-${item.id}" onclick="navTo('${item.id}',this)">
+        <span class="ni-ic">${item.ic}</span>
+        <span>${L[item.lk]||item.id}</span>
+      </div>`).join('')}
+  `).join('');
+}
+function renderPages(){
+  const canvas=$('app-canvas');
+  if(!canvas)return;
+  // All roles get a dashboard + common pages + role-specific
+  canvas.innerHTML=`
+    ${pgDashboard()}
+    ${pgLoadBoard()}
+    ${pgTracking()}
+    ${S.role==='shipper'?pgPost():''}
+    ${pgBids()}
+    ${pgBookings()}
+    ${pgDocs()}
+    ${S.role==='carrier'||S.role==='dispatcher'?pgFleet():''}
+    ${S.role==='carrier'?pgBackhaul():''}
+    ${S.role==='carrier'?pgEarnings():''}
+    ${S.role==='broker'?pgCommissions():''}
+    ${S.role==='broker'?pgPools():''}
+    ${S.role==='broker'?pgClients():''}
+    ${S.role==='dispatcher'?pgLiveMap():''}
+    ${S.role==='dispatcher'?pgDrivers():''}
+    ${S.role==='dispatcher'?pgDispatch():''}
+    ${S.role!=='dispatcher'?pgAnalytics():''}
+    ${S.role!=='dispatcher'?pgPlans():''}
+    ${pgAcademy()}
+    ${pgCorridors()}
+  `;
+  // Wire academy and boards
+  setTimeout(()=>{
+    rBoard();rBids();rBookings();rDocs();rFleet();rAcademy();rCorridorBars();rDash();
+  },0);
+}
+
+// ─── PAGE TEMPLATES ───────────────────────────────────────────
+function pgDashboard(){
+  const L=T[S.lang]||T.en;
+  // Role-specific KPIs
+  const kpis={
+    shipper:`
+      <div class="kpi"><div class="kpi-label">${L.kpi_loads}</div><div class="kpi-val">5</div><div class="kpi-sub">${L.kpi_on_board}</div><div class="kpi-delta up">2 today</div></div>
+      <div class="kpi"><div class="kpi-label">${L.kpi_bids}</div><div class="kpi-val em">11</div><div class="kpi-sub">${L.kpi_awaiting}</div></div>
+      <div class="kpi"><div class="kpi-label">${L.kpi_transit}</div><div class="kpi-val" style="color:var(--info)">3</div><div class="kpi-sub">${L.kpi_moving}</div></div>
+      <div class="kpi"><div class="kpi-label">${L.kpi_revenue}</div><div class="kpi-val ok">$12k</div><div class="kpi-delta up">18%</div></div>
+      <div class="kpi"><div class="kpi-label">${L.kpi_rating}</div><div class="kpi-val warn">4.8</div><div class="kpi-sub">★ avg</div></div>`,
+    carrier:`
+      <div class="kpi"><div class="kpi-label">Available Loads</div><div class="kpi-val">47</div><div class="kpi-sub">near your route</div></div>
+      <div class="kpi"><div class="kpi-label">My Active Bids</div><div class="kpi-val em">3</div><div class="kpi-sub">pending</div></div>
+      <div class="kpi"><div class="kpi-label">In Transit</div><div class="kpi-val" style="color:var(--info)">1</div><div class="kpi-sub">${L.kpi_moving}</div></div>
+      <div class="kpi"><div class="kpi-label">${L.kpi_trucks}</div><div class="kpi-val ok">2</div><div class="kpi-sub">of 3 active</div></div>
+      <div class="kpi"><div class="kpi-label">My Rating</div><div class="kpi-val warn">4.8</div><div class="kpi-sub">★</div></div>`,
+    broker:`
+      <div class="kpi"><div class="kpi-label">Active Loads</div><div class="kpi-val">18</div><div class="kpi-sub">managed</div></div>
+      <div class="kpi"><div class="kpi-label">${L.kpi_commissions}</div><div class="kpi-val ok">$3.2k</div><div class="kpi-delta up">MTD</div></div>
+      <div class="kpi"><div class="kpi-label">${L.kpi_pool}</div><div class="kpi-val em">$28k</div><div class="kpi-sub">in 3 pools</div></div>
+      <div class="kpi"><div class="kpi-label">Clients</div><div class="kpi-val" style="color:var(--info)">7</div><div class="kpi-sub">active</div></div>
+      <div class="kpi"><div class="kpi-label">Open Disputes</div><div class="kpi-val" style="color:var(--err)">0</div><div class="kpi-sub">clean</div></div>`,
+    dispatcher:`
+      <div class="kpi"><div class="kpi-label">${L.kpi_trucks}</div><div class="kpi-val ok">8</div><div class="kpi-sub">of 10 active</div></div>
+      <div class="kpi"><div class="kpi-label">In Transit</div><div class="kpi-val" style="color:var(--info)">5</div><div class="kpi-sub">${L.kpi_moving}</div></div>
+      <div class="kpi"><div class="kpi-label">Delivered Today</div><div class="kpi-val ok">3</div><div class="kpi-delta up">on time</div></div>
+      <div class="kpi"><div class="kpi-label">Border Alerts</div><div class="kpi-val warn">1</div><div class="kpi-sub">Namanga +2h</div></div>
+      <div class="kpi"><div class="kpi-label">Fleet Score</div><div class="kpi-val">94%</div><div class="kpi-sub">efficiency</div></div>`,
+  };
+  const planStrip=S.role!=='dispatcher'?`
+    <div class="plan-strip">
+      <div class="ps-info">
+        <div class="ps-label">${L.plan_lbl}</div>
+        <div class="ps-msg">${L.plan_msg}</div>
+        <div class="ps-hook">${L.plan_hook}</div>
+      </div>
+      <div class="pm-row">
+        <div class="pm on"><div class="pm-n">Arise</div><div class="pm-p">Free</div></div>
+        <div class="pm" onclick="openM('upgrade-m')"><div class="pm-n">Carrier</div><div class="pm-p">$29</div></div>
+        <div class="pm" onclick="openM('upgrade-m')"><div class="pm-n">Broker</div><div class="pm-p">$99</div></div>
+        <div class="pm" onclick="openM('upgrade-m')"><div class="pm-n">Fleet</div><div class="pm-p">$299</div></div>
+      </div>
+    </div>`:'';
+  const academyNudge=`
+    <div class="card" style="margin-top:.8rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+      <span style="font-size:1.5rem">🎓</span>
+      <div style="flex:1;min-width:175px">
+        <div style="font-family:var(--fi);font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:.14rem">${L.academy_nudge}</div>
+        <div style="font-family:var(--fi);font-size:.68rem;color:var(--muted)">${L.academy_sub}</div>
+      </div>
+      <button class="btn-sm pri" onclick="navTo('academy')" style="font-size:.67rem">Start →</button>
+    </div>`;
+  return `<div class="page on" id="pg-dashboard">
+    ${planStrip}
+    <div class="kpi-row">${kpis[S.role]||kpis.shipper}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem">
+      <div class="card"><div class="sec" style="margin-bottom:.65rem"><div class="sec-t">${L.sec_activity}</div></div><div id="act-feed"></div></div>
+      <div class="card" style="border-left:3px solid var(--ok)">
+        <div style="font-family:var(--fi);font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ok);margin-bottom:.38rem">⬡ Network Pulse</div>
+        <div style="font-family:var(--fi);font-size:.86rem;font-weight:700;color:var(--text);margin-bottom:.32rem">EAC Customs Bond — Live</div>
+        <div style="font-family:var(--fi);font-size:.7rem;color:var(--muted);line-height:1.65;margin-bottom:.68rem">Single bond across Kenya, Rwanda, Tanzania, Uganda, Burundi. $2B freed. Koum launches April 1.</div>
+        <div style="display:flex;flex-direction:column;gap:.24rem">
+          <div style="font-family:var(--fi);font-size:.65rem;color:var(--ok)">✓ 38 countries connected</div>
+          <div style="font-family:var(--fi);font-size:.65rem;color:var(--ok)">✓ 8 EAC corridors live</div>
+          <div style="font-family:var(--fi);font-size:.65rem;color:var(--warn)">◉ April 1 — The Joke That Wasn't</div>
+        </div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-t">${L.sec_board}</div><a class="sec-a" onclick="navTo('loadboard')">View all →</a></div>
+    <div id="dash-loads"></div>
+    ${academyNudge}
+  </div>`;
+}
+
+function pgLoadBoard(){
+  const L=T[S.lang]||T.en;
+  return `<div class="page" id="pg-loadboard">
+    <div class="fbar">
+      <input class="fi-app" id="lb-q" placeholder="Search city, cargo..." oninput="rBoard()"/>
+      <select class="sel-app" id="lb-type" onchange="rBoard()"><option>All Types</option><option>FTL</option><option>LTL</option></select>
+      <select class="sel-app" id="lb-cargo" onchange="rBoard()"><option>All Cargo</option><option>Coffee</option><option>FMCG</option><option>Steel</option><option>Minerals</option><option>Humanitarian</option></select>
+      <select class="sel-app" id="lb-sort" onchange="rBoard()"><option value="new">Newest</option><option value="rh">Rate ↑</option><option value="rl">Rate ↓</option></select>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.62rem">
+      <span style="font-family:var(--fi);font-size:.7rem;color:var(--muted)" id="lb-ct">5 loads</span>
+      <span style="font-family:var(--fi);font-size:.62rem;color:var(--ok);display:flex;align-items:center;gap:.24rem">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--ok);display:inline-block;animation:pulse 2s infinite"></span>Live · PricingAgent</span>
+    </div>
+    <div id="lb-list"></div>
+  </div>`;
+}
+
+function pgTracking(){
+  const L=T[S.lang]||T.en;
+  return `<div class="page" id="pg-tracking">
+    <div class="card" style="margin-bottom:.8rem">
+      <div class="sec-t" style="margin-bottom:.6rem">Track Shipment</div>
+      <div style="display:flex;gap:.48rem">
+        <input class="fi-app" id="tk-in" style="flex:1" placeholder="Booking ID · e.g. KM-2026-0042"/>
+        <button class="btn-sm pri" style="padding:.5rem .95rem" onclick="doTrack()">Track</button>
+      </div>
+      <div style="font-family:var(--fi);font-size:.65rem;color:var(--subtle);margin-top:.4rem">Demo: <span style="color:#D4874A;cursor:pointer" onclick="$('tk-in').value='KM-2026-0042';doTrack()">KM-2026-0042</span></div>
+    </div>
+    <div id="tk-result" style="display:none">
+      <div class="card" style="margin-bottom:.8rem">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.88rem;flex-wrap:wrap;gap:.42rem">
+          <div>
+            <div style="font-family:var(--fi);font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.2rem">Booking</div>
+            <div style="font-family:var(--fd);font-size:1.2rem;font-weight:300;color:var(--navy)">KM-2026-0042</div>
+          </div>
+          <span class="badge b-trs">● In Transit</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.88rem;margin-bottom:.82rem">
+          <div style="text-align:center"><div style="font-size:1.25rem">🇰🇪</div><div style="font-family:var(--fi);font-size:.78rem;font-weight:700;color:var(--text)">Mombasa</div><div style="font-family:var(--fi);font-size:.6rem;color:var(--muted)">Kilindini</div></div>
+          <div style="flex:1">
+            <div style="height:4px;background:var(--surf-hi);border-radius:2px;overflow:hidden;margin-bottom:.26rem">
+              <div style="height:100%;width:58%;background:linear-gradient(90deg,#D4874A,#F0B429);border-radius:2px"></div>
+            </div>
+            <div style="text-align:center;font-family:var(--fi);font-size:.65rem;color:var(--muted)">58% · ETA March 25</div>
+          </div>
+          <div style="text-align:center"><div style="font-size:1.25rem">🇷🇼</div><div style="font-family:var(--fi);font-size:.78rem;font-weight:700;color:var(--text)">Kigali</div><div style="font-family:var(--fi);font-size:.6rem;color:var(--muted)">Gikondo IZ</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.48rem">
+          <div class="surf"><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Cargo</div><div style="font-family:var(--fi);font-size:.74rem;font-weight:600;color:var(--text);margin-top:.08rem">Coffee · 18MT</div></div>
+          <div class="surf"><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Carrier</div><div style="font-family:var(--fi);font-size:.74rem;font-weight:600;color:var(--text);margin-top:.08rem">EA Haulage</div></div>
+          <div class="surf"><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Truck</div><div style="font-family:var(--fi);font-size:.74rem;font-weight:600;color:var(--text);margin-top:.08rem">KBA 772K</div></div>
+        </div>
+      </div>
+      <div class="map-box">
+        <svg viewBox="0 0 600 420" style="width:100%;height:100%;background:#eee8e0">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#D4874A"/></marker>
+            <filter id="glo"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M338 78Q358 74 378 82Q400 90 410 112Q416 134 408 158Q400 180 386 194Q372 208 360 222Q345 234 335 248Q322 260 316 274Q310 288 306 302" fill="#ddd7cf" stroke="#c8b89a" stroke-width=".6"/>
+          <path d="M306 302Q322 298 338 308Q358 318 368 338Q376 355 368 376Q360 392 344 400Q326 406 308 400Q290 392 282 376Q275 358 280 340Q285 322 296 312Q300 306 306 302Z" fill="#ddd7cf" stroke="#c8b89a" stroke-width=".6"/>
+          <path d="M235 248Q250 242 262 250Q274 260 270 275Q266 288 254 293Q242 297 232 290Q222 282 224 268Q226 255 235 248Z" fill="#d4cdc5" stroke="#b8a88a" stroke-width=".6"/>
+          <path d="M260 192Q278 186 294 195Q308 204 310 220Q312 234 302 244Q290 252 276 253Q262 252 254 242Q246 230 248 216Q250 202 260 192Z" fill="#ddd7cf" stroke="#c8b89a" stroke-width=".6"/>
+          <path d="M252 292Q262 288 270 296Q278 306 275 318Q270 328 260 332Q250 334 242 326Q234 316 238 304Q242 294 252 292Z" fill="#d8d2ca" stroke="#c8b89a" stroke-width=".6"/>
+          <ellipse cx="490" cy="180" rx="82" ry="135" fill="#c5ddf0" opacity=".45"/>
+          <circle cx="374" cy="158" r="7" fill="#D4874A" filter="url(#glo)"/>
+          <text x="384" y="162" fill="#001b44" font-size="11" font-family="Manrope" font-weight="600">Mombasa</text>
+          <circle cx="244" cy="264" r="7" fill="#D4874A" filter="url(#glo)"/>
+          <text x="253" y="268" fill="#001b44" font-size="11" font-family="Manrope" font-weight="600">Kigali</text>
+          <circle cx="336" cy="222" r="5" fill="#001b44" opacity=".55"/>
+          <text x="343" y="226" fill="#434750" font-size="9" font-family="Manrope">Nairobi</text>
+          <circle cx="276" cy="222" r="5" fill="#001b44" opacity=".55"/>
+          <text x="283" y="226" fill="#434750" font-size="9" font-family="Manrope">Kampala</text>
+          <path d="M374 158Q354 186 336 222Q314 242 276 222Q262 235 244 264" fill="none" stroke="#D4874A" stroke-width="2.4" stroke-dasharray="7 4" marker-end="url(#arr)" opacity=".85"/>
+          <circle cx="315" cy="230" r="11" fill="#F0B429" filter="url(#glo)"/>
+          <circle cx="315" cy="230" r="17" fill="none" stroke="#F0B429" stroke-width=".8" opacity=".22" style="animation:pulse 2s infinite"/>
+          <text x="309" y="234" fill="#000" font-size="9" font-family="Manrope" font-weight="800">🚛</text>
+          <text x="14" y="414" fill="rgba(0,27,68,.3)" font-size="8" font-family="Manrope">Live · Mombasa → Kigali · 58% · TrackingAgent · Set GOOGLE_MAPS_KEY for full map</text>
+        </svg>
+        <div class="map-panel">
+          <div class="map-panel-t">Network Pulse</div>
+          <div class="net-row"><span>On Schedule</span><span style="color:#59de9b;font-weight:700">88%</span></div>
+          <div class="net-bar"><div style="height:100%;width:88%;background:#006d43;border-radius:2px"></div></div>
+          <div class="net-row" style="margin-top:.2rem"><span>Current</span><span style="color:#fbbc00">Namanga 🇰🇪</span></div>
+          <div style="font-family:var(--fi);font-size:.62rem;color:rgba(174,198,255,.45);margin-top:.38rem">● TrackingAgent · 4 min ago</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sec-t" style="margin-bottom:.82rem">Timeline</div>
+        <div id="tl-content"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pgPost(){
+  const L=T[S.lang]||T.en;
+  return `<div class="page" id="pg-post">
+    <div style="max-width:540px">
+      <div class="sec-t" style="margin-bottom:.9rem">${L.nav_post}</div>
+      <div style="background:rgba(212,135,74,.05);border:1px solid rgba(184,115,51,.15);border-radius:8px;padding:.7rem .85rem;margin-bottom:.95rem;font-family:var(--fi);font-size:.68rem;color:var(--muted)">
+        <strong style="color:var(--text)">Arise Plan:</strong> <strong style="color:#D4874A">2 loads remaining</strong> · <span style="color:var(--navy);cursor:pointer;font-weight:600" onclick="openM('upgrade-m')">Upgrade ($29) →</span>
+      </div>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.82rem">
+          <div class="fg"><label class="fl">${L.mm_orig}</label><input class="fi" placeholder="Mombasa"/></div>
+          <div class="fg"><label class="fl">Country</label><select class="fi"><option>🇰🇪 Kenya</option><option>🇷🇼 Rwanda</option><option>🇹🇿 Tanzania</option><option>🇺🇬 Uganda</option><option>🇧🇮 Burundi</option><option>🇸🇸 South Sudan</option></select></div>
+          <div class="fg"><label class="fl">${L.mm_dest}</label><input class="fi" placeholder="Kigali"/></div>
+          <div class="fg"><label class="fl">Country</label><select class="fi"><option>🇷🇼 Rwanda</option><option>🇰🇪 Kenya</option><option>🇹🇿 Tanzania</option><option>🇺🇬 Uganda</option><option>🇧🇮 Burundi</option><option>🇸🇸 South Sudan</option></select></div>
+          <div class="fg"><label class="fl">Load Type</label><select class="fi"><option>FTL</option><option>LTL</option></select></div>
+          <div class="fg"><label class="fl">${L.mm_wt}</label><input class="fi" type="number" placeholder="18000"/></div>
+          <div class="fg"><label class="fl">${L.mm_cargo}</label><select class="fi"><option>Coffee</option><option>FMCG</option><option>Steel</option><option>Minerals</option><option>Humanitarian</option><option>Petroleum</option><option>Electronics</option><option>Other</option></select></div>
+          <div class="fg"><label class="fl">${L.mm_rate}</label><input class="fi" type="number" placeholder="2400" id="pl-rate" oninput="checkRate()"/></div>
+          <div class="fg"><label class="fl">Pickup Date</label><input class="fi" type="date"/></div>
+          <div class="fg"><label class="fl">Payment Terms</label><select class="fi"><option>Prepaid</option><option>NET 15</option><option>NET 30</option><option>COD</option></select></div>
+        </div>
+        <div id="rate-sig" style="display:none;border-radius:7px;padding:.6rem .75rem;margin-bottom:.75rem;font-family:var(--fi);font-size:.68rem;line-height:1.5"></div>
+        <div class="fg"><label class="fl">Description</label><textarea class="fi" rows="2" placeholder="Cargo details, certifications..."></textarea></div>
+        <button class="btn-full" onclick="postLoad()" style="margin-top:.45rem">Post to Load Board</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pgBids(){const L=T[S.lang]||T.en;return `<div class="page" id="pg-bids"><div class="sec"><div class="sec-t">${L.sec_bids}</div><span style="font-family:var(--fi);font-size:.68rem;color:var(--muted)">MatchAgent ranked</span></div><div id="bids-list"></div></div>`}
+function pgBookings(){const L=T[S.lang]||T.en;return `<div class="page" id="pg-bookings"><div class="sec"><div class="sec-t">${L.sec_book}</div></div><div id="book-list"></div></div>`}
+function pgDocs(){return `<div class="page" id="pg-docs"><div class="sec"><div class="sec-t">Documents</div><button class="btn-sm pri" onclick="toast('DocumentAgent generating CMR...','s')">+ Generate</button></div><div id="docs-list"></div></div>`}
+function pgFleet(){const L=T[S.lang]||T.en;return `<div class="page" id="pg-fleet"><div class="sec"><div class="sec-t">${L.sec_fleet}</div><button class="btn-sm pri" onclick="toast('Truck added.','s')">+ Add Truck</button></div><div id="fleet-list"></div></div>`}
+function pgBackhaul(){return `<div class="page" id="pg-backhaul"><div class="sec-t" style="margin-bottom:1rem">Backhaul Opportunities</div><div class="card"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1.1rem"><span style="font-size:2rem">🔄</span><div><div style="font-family:var(--fi);font-size:.86rem;font-weight:700;color:var(--text)">BackhaulAgent Active</div><div style="font-family:var(--fi);font-size:.7rem;color:var(--muted)">Scanning 38 countries for return loads matching your route and truck type.</div></div></div><div id="backhaul-loads"></div></div></div>`;
+}
+function pgEarnings(){return `<div class="page" id="pg-earnings"><div class="sec-t" style="margin-bottom:1rem">Earnings</div><div class="kpi-row"><div class="kpi"><div class="kpi-label">MTD Earned</div><div class="kpi-val ok">$4.2k</div><div class="kpi-delta up">18%</div></div><div class="kpi"><div class="kpi-label">Loads Completed</div><div class="kpi-val">12</div><div class="kpi-sub">this month</div></div><div class="kpi"><div class="kpi-label">Avg per Load</div><div class="kpi-val em">$350</div></div><div class="kpi"><div class="kpi-label">Pending Payment</div><div class="kpi-val warn">$1.8k</div><div class="kpi-sub">2 loads</div></div></div></div>`}
+function pgCommissions(){return `<div class="page" id="pg-commissions"><div class="sec-t" style="margin-bottom:1rem">Commissions</div><div class="kpi-row"><div class="kpi"><div class="kpi-label">MTD</div><div class="kpi-val ok">$3.2k</div><div class="kpi-delta up">22%</div></div><div class="kpi"><div class="kpi-label">Loads Brokered</div><div class="kpi-val">18</div></div><div class="kpi"><div class="kpi-label">Avg Commission</div><div class="kpi-val em">$178</div></div><div class="kpi"><div class="kpi-label">Pending</div><div class="kpi-val warn">$650</div></div></div></div>`}
+function pgPools(){return `<div class="page" id="pg-pools"><div class="sec-t" style="margin-bottom:1rem">Load Pools</div><div class="card"><div style="font-family:var(--fi);font-size:.78rem;font-weight:700;margin-bottom:.35rem;color:var(--text)">Mombasa–Kigali Pool</div><div style="font-family:var(--fi);font-size:.7rem;color:var(--muted);margin-bottom:.65rem">8 shippers · $28,400 total value · 3 carriers assigned</div><button class="btn-sm pri" onclick="toast('Pool details loading...','i')">View Pool</button></div></div>`}
+function pgClients(){return `<div class="page" id="pg-clients"><div class="sec-t" style="margin-bottom:1rem">Clients</div><div class="card"><div style="font-family:var(--fi);font-size:.82rem;font-weight:700;color:var(--text)">7 active clients</div><div style="font-family:var(--fi);font-size:.7rem;color:var(--muted);margin-top:.28rem">CreditAgent has assessed all for payment terms eligibility.</div></div></div>`}
+function pgLiveMap(){return `<div class="page" id="pg-livemap"><div class="sec-t" style="margin-bottom:.8rem">Live Fleet Map</div><div class="map-box" style="height:420px"><svg viewBox="0 0 600 420" style="width:100%;height:100%;background:#eee8e0"><path d="M338 78Q358 74 378 82Q400 90 410 112Q416 134 408 158Q400 180 386 194Q372 208 360 222Q345 234 335 248Q322 260 316 274Q310 288 306 302" fill="#ddd7cf" stroke="#c8b89a" stroke-width=".6"/><path d="M235 248Q250 242 262 250Q274 260 270 275Q266 288 254 293Q242 297 232 290Q222 282 224 268Q226 255 235 248Z" fill="#d4cdc5" stroke="#b8a88a" stroke-width=".6"/><path d="M260 192Q278 186 294 195Q308 204 310 220Q312 234 302 244Q290 252 276 253Q262 252 254 242Q246 230 248 216Q250 202 260 192Z" fill="#ddd7cf" stroke="#c8b89a" stroke-width=".6"/><circle cx="374" cy="158" r="8" fill="#F0B429" style="animation:pulse 2s infinite"/><text x="384" y="162" fill="#001b44" font-size="10" font-family="Manrope" font-weight="600">KBA 772K</text><circle cx="336" cy="222" r="8" fill="#006d43" style="animation:pulse 2s .3s infinite"/><text x="346" y="226" fill="#001b44" font-size="10" font-family="Manrope">KCB 441F</text><circle cx="276" cy="222" r="6" fill="#224583"/><text x="284" y="226" fill="#434750" font-size="9" font-family="Manrope">UAF 903H</text><text x="14" y="414" fill="rgba(0,27,68,.3)" font-size="8" font-family="Manrope">Fleet live map · 3 trucks · Set GOOGLE_MAPS_KEY for full integration</text></svg><div class="map-panel"><div class="map-panel-t">Fleet Status</div><div class="net-row"><span>In Transit</span><span style="color:#fbbc00;font-weight:700">2 / 3</span></div><div class="net-row" style="margin-top:.3rem"><span>On Time</span><span style="color:#59de9b;font-weight:700">100%</span></div></div></div></div>`}
+function pgDrivers(){return `<div class="page" id="pg-drivers"><div class="sec-t" style="margin-bottom:.85rem">Drivers</div><div id="fleet-list"></div></div>`}
+function pgDispatch(){return `<div class="page" id="pg-dispatch"><div class="sec-t" style="margin-bottom:.85rem">Dispatch Queue</div><div class="card"><div style="font-family:var(--fi);font-size:.78rem;color:var(--muted)">3 loads assigned · 2 trucks available · RouteAgent monitoring all active corridors.</div></div></div>`}
+
+function pgAnalytics(){
+  const L=T[S.lang]||T.en;
+  return `<div class="page" id="pg-analytics">
+    <div class="sec-t" style="margin-bottom:1rem">${L.sec_analytics}</div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Total Loads</div><div class="kpi-val">47</div><div class="kpi-sub">all time</div></div>
+      <div class="kpi"><div class="kpi-label">Completed</div><div class="kpi-val ok">31</div><div class="kpi-sub">66% rate</div></div>
+      <div class="kpi"><div class="kpi-label">Avg Rate</div><div class="kpi-val">$2.1k</div></div>
+      <div class="kpi"><div class="kpi-label">MRR</div><div class="kpi-val em">$0</div><div class="kpi-sub">Pre-revenue</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.82rem">
+      <div class="card"><div class="sec-t" style="margin-bottom:.82rem">Corridor Volume</div><div id="corr-bars"></div></div>
+      <div class="card"><div class="sec-t" style="margin-bottom:.82rem">Projections</div>
+        <div style="font-family:var(--fi);font-size:.7rem;color:var(--muted);line-height:1.82;display:flex;flex-direction:column;gap:.26rem">
+          <div><span style="font-weight:600;color:var(--text)">Jun '26:</span> $2K MRR · 50 users</div>
+          <div><span style="font-weight:600;color:var(--text)">Oct '26:</span> $5K MRR · 200 users</div>
+          <div><span style="font-weight:600;color:var(--text)">Apr '27:</span> $25K MRR · 1K users</div>
+          <div><span style="font-weight:600;color:var(--navy)">Series A 2027:</span> $2M at $10M</div>
+          <div style="padding-top:.48rem;border-top:1px solid var(--bdr);margin-top:.18rem;color:var(--navy);font-weight:600">LTV:CAC — 34:1 (Carrier) · 158:1 (Broker)</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pgPlans(){
+  const L=T[S.lang]||T.en;
+  const plans=[
+    {tier:'Arise',price:'$0',cycle:'forever',hook:'Start here.',feats:['5 loads/month','2 corridors','1 seat'],active:true},
+    {tier:'Carrier',price:'$29',cycle:'/mo',hook:'One backhaul = 6 months paid.',feats:['50 loads','All 8 corridors','BackhaulAgent','Live GPS','DPO payments'],featured:true},
+    {tier:'Broker',price:'$99',cycle:'/mo',hook:'One fee on $3k = 3 months.',feats:['Unlimited loads','BrokerAgent','InsuranceAgent','5 seats']},
+    {tier:'Fleet',price:'$299',cycle:'/mo',hook:'$26k freight, Koum = 1.1%.',feats:['Unlimited everything','All AI agents','White-label','20 seats']},
+  ];
+  return `<div class="page" id="pg-plans">
+    <div class="sec-t" style="margin-bottom:.4rem">${L.sec_plans}</div>
+    <p style="font-family:var(--fi);font-size:.76rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6">${L.plans_sub}</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.75rem">
+      ${plans.map(p=>`
+        <div style="background:${p.featured?'rgba(212,135,74,.04)':p.active?'var(--surf-lo)':'var(--card)'};border:1px solid ${p.featured?'#D4874A':p.active?'var(--copper)':'var(--bdr)'};border-radius:13px;padding:1.3rem 1.1rem;position:relative;box-shadow:var(--shadow-sm)">
+          ${p.featured?`<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#D4874A,#F0B429);color:#000;font-size:.54rem;font-weight:800;letter-spacing:.14em;padding:2px 10px;border-radius:0 0 7px 7px;white-space:nowrap">BEST VALUE</div>`:''}
+          <div style="font-family:var(--fi);font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:.28rem">${p.tier}</div>
+          <div style="font-family:var(--fd);font-size:1.9rem;font-weight:300;color:var(--navy);line-height:1;margin-bottom:.12rem">${p.price}</div>
+          <div style="font-family:var(--fi);font-size:.64rem;color:var(--subtle);margin-bottom:.72rem">${p.cycle}</div>
+          <div style="font-family:var(--fi);font-size:.66rem;color:#D4874A;font-style:italic;margin-bottom:.7rem;line-height:1.5">${p.hook}</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:.28rem;margin-bottom:.9rem">
+            ${p.feats.map(f=>`<li style="font-family:var(--fi);font-size:.65rem;color:var(--muted);display:flex;gap:.3rem;align-items:flex-start;line-height:1.38"><span style="color:var(--ok);font-weight:700;flex-shrink:0">✓</span>${f}</li>`).join('')}
+          </ul>
+          <button class="btn-sm ${p.active?'gho':'pri'}" style="width:100%;padding:.62rem;font-size:.7rem" onclick="${p.active?`toast('You are on the Arise plan.','i')`:`selPlan('${p.tier}')`}">${p.active?'Current Plan':`Upgrade to ${p.tier}`}</button>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function pgAcademy(){
+  const L=T[S.lang]||T.en;
+  return `<div class="page" id="pg-academy">
+    <div class="sec-t" style="margin-bottom:.28rem">Academy</div>
+    <p style="font-family:var(--fi);font-size:.72rem;color:var(--muted);line-height:1.6;margin-bottom:1rem">6 certificates. 20 courses. AcademyAgent recommends based on your role and corridor.</p>
+    <div style="background:var(--surf-lo);border-radius:10px;padding:.9rem 1.05rem;margin-bottom:.95rem;display:flex;align-items:center;gap:.88rem;flex-wrap:wrap">
+      <div style="text-align:center;min-width:55px"><div style="font-family:var(--fd);font-size:1.8rem;font-weight:300;color:var(--navy)">0</div><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Done</div></div>
+      <div style="text-align:center;min-width:55px"><div style="font-family:var(--fd);font-size:1.8rem;font-weight:300;color:var(--copper)">0</div><div style="font-family:var(--fi);font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Certs</div></div>
+      <div style="flex:1;min-width:165px">
+        <div style="font-family:var(--fi);font-size:.76rem;font-weight:700;color:var(--text);margin-bottom:.14rem">${L.academy_nudge}</div>
+        <div style="font-family:var(--fi);font-size:.66rem;color:var(--muted)">${L.academy_sub}</div>
+      </div>
+      <button class="btn-sm pri" onclick="showCert(0)" style="font-size:.65rem">Start →</button>
+    </div>
+    <div id="acad-list"></div>
+  </div>`;
+}
+
+function pgCorridors(){
+  const CORR=[
+    {n:'Mombasa–Kigali',f:'🇰🇪→🇷🇼',km:'1,540 km',days:'3–4 days',loads:18,vol:'$42K/wk',st:'High demand',sig:'EAC Bond accelerating'},
+    {n:'Dar–Kampala',f:'🇹🇿→🇺🇬',km:'1,380 km',days:'2–3 days',loads:12,vol:'$28K/wk',st:'Active'},
+    {n:'Nairobi–Bujumbura',f:'🇰🇪→🇧🇮',km:'980 km',days:'2 days',loads:7,vol:'$18K/wk',st:'Active'},
+    {n:'Kampala–Juba',f:'🇺🇬→🇸🇸',km:'520 km',days:'1–2 days',loads:5,vol:'$14K/wk',st:'Caution',sig:'Security advisory'},
+    {n:'Kigali–Mombasa',f:'🇷🇼→🇰🇪',km:'1,540 km',days:'3–4 days',loads:9,vol:'$31K/wk',st:'Active'},
+    {n:'Dar–Kigali',f:'🇹🇿→🇷🇼',km:'1,410 km',days:'2–3 days',loads:6,vol:'$20K/wk',st:'Active'},
+  ];
+  const stc={'High demand':'var(--warn)','Active':'var(--ok)','Caution':'var(--err)'};
+  return `<div class="page" id="pg-corridors">
+    <div class="sec-t" style="margin-bottom:.85rem">EAC Corridors</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:.72rem">
+      ${CORR.map(c=>`
+        <div class="card" style="cursor:pointer;transition:var(--t)" onmouseover="this.style.boxShadow='var(--shadow)'" onmouseout="this.style.boxShadow='var(--shadow-sm)'">
+          <div style="font-size:1.35rem;margin-bottom:.38rem">${c.f}</div>
+          <div style="font-family:var(--fi);font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:.3rem">${c.n}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.36rem;margin-bottom:.55rem">
+            <div class="surf"><div style="font-family:var(--fi);font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Distance</div><div style="font-family:var(--fi);font-size:.72rem;font-weight:600;color:var(--text);margin-top:.07rem">${c.km}</div></div>
+            <div class="surf"><div style="font-family:var(--fi);font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Transit</div><div style="font-family:var(--fi);font-size:.72rem;font-weight:600;color:var(--text);margin-top:.07rem">${c.days}</div></div>
+            <div class="surf"><div style="font-family:var(--fi);font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Loads</div><div style="font-family:var(--fi);font-size:.72rem;font-weight:600;color:var(--text);margin-top:.07rem">${c.loads}</div></div>
+            <div class="surf"><div style="font-family:var(--fi);font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Volume/Week</div><div style="font-family:var(--fi);font-size:.72rem;font-weight:600;color:var(--text);margin-top:.07rem">${c.vol}</div></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:var(--fi);font-size:.66rem;color:${stc[c.st]||'var(--ok)'}">● ${c.st}</span>
+            ${c.sig?`<span style="font-family:var(--fi);font-size:.62rem;color:var(--copper);font-style:italic">⚡ ${c.sig}</span>`:''}
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ─── PAGE NAV ────────────────────────────────────────────────────
+function navTo(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  const pg=document.getElementById('pg-'+id);
+  if(pg){pg.classList.add('on');if(id==='tracking'){}else if(id==='loadboard')rBoard();}
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const ni=document.getElementById('ni-'+id);
+  if(ni)ni.classList.add('on');
+  else if(el)el.classList.add('on');
+  const L=T[S.lang]||T.en;
+  const pg2=$('pg-title');
+  const lkMap={dashboard:'nav_dash',loadboard:'nav_lb',tracking:'nav_track',post:'nav_post',bids:'nav_bids',bookings:'nav_book',docs:'nav_docs',fleet:'nav_fleet',backhaul:'nav_backhaul',earnings:'nav_earnings',commissions:'nav_commissions',pools:'nav_pools',clients:'nav_clients',livemap:'nav_map',drivers:'nav_drivers',dispatch:'nav_dispatch',analytics:'nav_analytics',plans:'nav_plans',academy:'nav_academy',corridors:'nav_corridors'};
+  if(pg2)pg2.textContent=L[lkMap[id]]||id;
+}
+
+// ─── ROLE SWITCHER ───────────────────────────────────────────────
+function switchRole(r,el){
+  S.role=r;
+  document.querySelectorAll('.rs').forEach(b=>b.classList.remove('on'));
+  if(el)el.classList.add('on');
+  document.getElementById('app').setAttribute('data-role-active',r);
+  renderNav();
+  renderPages();
+  updateCtaAndChip();
+  toast(`Switched to ${r.charAt(0).toUpperCase()+r.slice(1)} view`,'i');
+}
+
+// ─── RENDERS ─────────────────────────────────────────────────────
+function rDash(){
+  const acts=[
+    {ic:'📦',t:'Load posted: Mombasa → Kigali · $2,400',tm:'2 min ago'},
+    {ic:'💬',t:'Bid: $2,250 from EA Haulage (94% match)',tm:'14 min ago'},
+    {ic:'✅',t:'Delivered: KM-2026-0039',tm:'1h ago'},
+    {ic:'🤖',t:'FraudAgent: 1 flagged, 3 cleared',tm:'2h ago'},
+    {ic:'🚛',t:'BackhaulAgent matched return for KBA 772K',tm:'3h ago'},
+  ];
+  const f=$('act-feed');
+  if(f)f.innerHTML=acts.map(a=>`<div style="display:flex;align-items:flex-start;gap:.55rem;padding:.42rem 0;border-bottom:1px solid var(--bdr)"><span style="font-size:.85rem;flex-shrink:0">${a.ic}</span><div style="flex:1;min-width:0"><div style="font-family:var(--fi);font-size:.7rem;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.t}</div><div style="font-family:var(--fi);font-size:.6rem;color:var(--subtle);margin-top:.06rem">${a.tm}</div></div></div>`).join('');
+  const dl=$('dash-loads');
+  if(dl)dl.innerHTML=S.loads.slice(0,3).map(l=>lcH(l,true)).join('');
+  const bl=$('backhaul-loads');
+  if(bl)bl.innerHTML=S.loads.slice(0,2).map(l=>`<div class="lcard"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.45rem"><div><div class="lr"><span class="lrc">${F[l.occ]||''} ${l.oc}</span><span class="lra">→</span><span class="lrc">${F[l.dcc]||''} ${l.dc}</span><span class="badge b-ftl">${l.type}</span></div><div class="lm"><span class="lmi">📦 ${l.cargo}</span><span class="lmi">⚖️ ${(l.kg/1e3).toFixed(1)}MT</span></div></div><div style="text-align:right"><div class="lrate">$${l.rate.toLocaleString()}</div><button class="btn-sm em" style="font-size:.68rem;margin-top:.35rem" onclick="toast('BackhaulAgent booking this return load...','s')">Book Return</button></div></div></div>`).join('');
+}
+function rBoard(){
+  const q=(($('lb-q')?.value)||'').toLowerCase();
+  const type=$('lb-type')?.value||'';
+  const cargo=$('lb-cargo')?.value||'';
+  const sort=$('lb-sort')?.value||'new';
+  let ls=[...S.loads];
+  if(q)ls=ls.filter(l=>l.oc.toLowerCase().includes(q)||l.dc.toLowerCase().includes(q)||l.cargo.toLowerCase().includes(q));
+  if(type&&type!=='All Types')ls=ls.filter(l=>l.type===type);
+  if(cargo&&cargo!=='All Cargo')ls=ls.filter(l=>l.cargo.toLowerCase().includes(cargo.toLowerCase()));
+  if(sort==='rh')ls.sort((a,b)=>b.rate-a.rate);
+  if(sort==='rl')ls.sort((a,b)=>a.rate-b.rate);
+  const ct=$('lb-ct');if(ct)ct.textContent=`${ls.length} load${ls.length!==1?'s':''}`;
+  const el=$('lb-list');
+  if(el)el.innerHTML=ls.map(l=>lcH(l,false)).join('')||`<div style="text-align:center;padding:3rem;color:var(--muted);font-family:var(--fi)"><div style="font-size:2rem;margin-bottom:.5rem">🚫</div>No loads match filters</div>`;
+}
+function lcH(l,mini){
+  const days=Math.ceil((new Date(l.pickup)-Date.now())/864e5);
+  const urg=days<=2;
+  const fw=l.kg>=1000?`${(l.kg/1e3).toFixed(1)}MT`:`${l.kg}kg`;
+  const sel=S.selLoad===l.id;
+  const tc={NET_30:'var(--info)',PREPAID:'var(--ok)',NET_15:'var(--info)',COD:'#c65900',LETTER_OF_CREDIT:'#7c3aed'};
+  const tl={NET_30:'Net 30',PREPAID:'Prepaid',NET_15:'Net 15',COD:'COD',LETTER_OF_CREDIT:'L/C'};
+  // Cargo-type left border color
+  const cargo=(l.cargo||'').toLowerCase();
+  let cargoBorder='4px solid var(--bdr)';
+  if(cargo.includes('coffee')||cargo.includes('agri'))cargoBorder='4px solid #F0B429';
+  else if(cargo.includes('mineral')||cargo.includes('coltan'))cargoBorder='4px solid #B87333';
+  else if(cargo.includes('humanitarian'))cargoBorder='4px solid #006d43';
+  else if(cargo.includes('petroleum')||cargo.includes('fuel'))cargoBorder='4px solid #224583';
+  const addBtn=S.role==='carrier'?`<button class="btn-sm em" style="width:100%;margin-bottom:.28rem;font-size:.68rem" onclick="openBid(event,'${l.id}')">Place Bid</button>`
+    :`<button class="btn-sm em" style="width:100%;margin-bottom:.28rem;font-size:.68rem" onclick="openBid(event,'${l.id}')">Bid</button>`;
+  return `<div class="lcard${sel?' sel':''}${urg?' urg':''}" style="border-left:${cargoBorder};padding:1.1rem;" onclick="selLoad('${l.id}')">
+    <div class="lci">
+      <div>
+        <div class="lr">${urg?`<span class="badge b-urg">URGENT</span>`:''}
+          <span class="lrc" style="font-size:1rem;font-weight:700">${F[l.occ]||''} ${l.oc}</span><span class="lra">→</span><span class="lrc" style="font-size:1rem;font-weight:700">${F[l.dcc]||''} ${l.dc}</span>
+          <span class="badge b-${l.type.toLowerCase()}">${l.type}</span>
+          ${l.bids>0?`<span style="font-family:var(--fi);font-size:.58rem;color:#7c3aed">💬 ${l.bids}</span>`:''}
+        </div>
+        <div class="lm">
+          <span class="lmi">📦 ${l.cargo}</span><span class="lmi">⚖️ ${fw}</span>
+          <span class="lmi" style="color:${days<=1?'var(--err)':days<=3?'#c65900':'var(--subtle)'}">📅 ${days<=0?'Today':days===1?'Tomorrow':days+'d'}</span>
+          <span style="font-family:var(--fi);font-size:.58rem;padding:2px 7px;border-radius:50px;border:1px solid ${tc[l.terms]||'var(--bdr)'};color:${tc[l.terms]||'var(--muted)'}">${tl[l.terms]||l.terms}</span>
+        </div>
+        ${sel?`<div class="ldesc">${l.desc}</div>`:''}
+      </div>
+      <div style="text-align:right;min-width:100px">
+        <div class="lrate">$${l.rate.toLocaleString()}</div>
+        <div class="lrate-s">USD · ${l.type}</div>
+        ${sel&&!mini?`${addBtn}<button class="btn-sm gho" style="width:100%;font-size:.65rem" onclick="event.stopPropagation();toast('RouteAgent monitoring corridor.','i')">Watch Route</button>`:`<button class="btn-sm gho" style="font-size:.65rem">View</button>`}
+      </div>
+    </div>
+  </div>`;
+}
+function selLoad(id){S.selLoad=S.selLoad===id?null:id;rBoard()}
+function openBid(e,id){
+  e.stopPropagation();
+  const l=LOADS.find(x=>x.id===id);if(!l)return;
+  $('bm-ctx').textContent=`${F[l.occ]} ${l.oc} → ${F[l.dcc]} ${l.dc} · ${l.cargo} · ${(l.kg/1e3).toFixed(0)}MT`;
+  $('bid-rate').placeholder=`Listed: $${l.rate.toLocaleString()}`;
+  openM('bid-m');
+}
+function submitBid(){closeM('bid-m');toast('Bid submitted! MatchAgent notified the shipper.','s')}
+function doTrack(){$('tk-result').style.display='block';rTL()}
+function rTL(){
+  const el=$('tl-content');if(!el)return;
+  el.innerHTML=TL_EVS.map((ev,i)=>{
+    const last=i===TL_EVS.length-1;
+    return `<div class="tl-item"><div class="tl-spine"><div class="tl-dot ${ev.s}"></div>${!last?`<div class="tl-vl ${ev.s==='done'?'done':'pend'}"></div>`:''}</div>
+      <div class="tl-body"><div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div><div class="tl-ev ${ev.s}">${ev.ev}</div><div class="tl-loc">${F[ev.cc]||''} ${ev.loc}</div></div>
+        <div class="tl-t">${ev.s==='now'?'● NOW':ev.t}</div>
+      </div></div>
+    </div>`;
+  }).join('');
+}
+function rBids(){
+  const el=$('bids-list');if(!el)return;
+  el.innerHTML=BIDS.map(b=>{
+    const l=LOADS.find(x=>x.id===b.lid)||{oc:'',occ:'KE',dc:'',dcc:'RW',rate:0};
+    const sav=l.rate-b.rate;
+    return `<div class="card" style="margin-bottom:.6rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.62rem;flex-wrap:wrap;gap:.38rem">
+        <div style="font-family:var(--fi);font-size:.9rem;font-weight:700;color:var(--text)">${F[l.occ]} ${l.oc} → ${F[l.dcc]} ${l.dc}</div>
+        <span style="font-family:var(--fi);font-size:.62rem;padding:3px 9px;border-radius:50px;background:var(--ok-bg);color:var(--ok);font-weight:700">Match ${b.match}%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.82rem;flex-wrap:wrap">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--surf-lo);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:800;color:#D4874A;flex-shrink:0">${b.carrier[0]}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--fi);font-size:.82rem;font-weight:700;color:var(--text)">${b.carrier}</div>
+          <div style="font-family:var(--fi);font-size:.66rem;color:var(--muted)">${b.driver} · ${b.truck}</div>
+          <div style="font-family:var(--fi);font-size:.65rem;color:#f59e0b">${'★'.repeat(Math.floor(b.rating))} ${b.rating} · ${b.trips} loads</div>
+        </div>
+        <div style="text-align:right">
+          <div class="lrate">$${b.rate.toLocaleString()}</div>
+          <div style="font-family:var(--fi);font-size:.62rem;color:${sav>0?'var(--ok)':'var(--err)'};">${sav>0?'Save $'+sav:'+$'+Math.abs(sav)}</div>
+          <div style="display:flex;gap:.32rem;margin-top:.48rem">
+            <button class="btn-sm err" style="font-size:.65rem" onclick="this.closest('.card').style.opacity='.45';toast('Bid rejected.','i')">Reject</button>
+            <button class="btn-sm ok" style="font-size:.65rem" onclick="this.textContent='✓ Accepted';this.style.background='var(--ok)';this.style.color='#fff';toast('Accepted! InvoiceAgent generating.','s')">Accept</button>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:var(--fi);font-size:.68rem;color:var(--muted);font-style:italic;margin-top:.65rem;padding-top:.55rem;border-top:1px solid var(--bdr)">"${b.note}"</div>
+    </div>`;
+  }).join('');
+}
+function rBookings(){
+  const el=$('book-list');if(!el)return;
+  const stc={in_transit:'var(--info)',delivered:'var(--ok)',pending:'var(--warn)'};
+  el.innerHTML=BOOKINGS.map(b=>`
+    <div class="card" style="display:grid;grid-template-columns:1fr auto;gap:.82rem;align-items:center;margin-bottom:.6rem">
+      <div>
+        <div style="display:flex;align-items:center;gap:.48rem;margin-bottom:.3rem;flex-wrap:wrap">
+          <span style="font-family:var(--fd);font-size:.92rem;color:var(--navy)">${b.id}</span>
+          <span class="badge" style="background:${stc[b.st]}18;color:${stc[b.st]}">${b.st.replace('_',' ')}</span>
+        </div>
+        <div style="font-family:var(--fi);font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:.18rem">${b.route}</div>
+        <div style="font-family:var(--fi);font-size:.66rem;color:var(--muted)">${b.cargo} · ${b.wt} · ${b.carrier} · ETA: ${b.eta}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="lrate">$${b.rate.toLocaleString()}</div>
+        <div style="display:flex;gap:.32rem;margin-top:.38rem;justify-content:flex-end">
+          <button class="btn-sm gho" style="font-size:.65rem" onclick="navTo('tracking');$('tk-in').value='${b.id}';doTrack()">Track</button>
+          <button class="btn-sm gho" style="font-size:.65rem" onclick="toast('DocumentAgent generating...','i')">Docs</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function rDocs(){
+  const el=$('docs-list');if(!el)return;
+  const stc={Generated:'var(--info)',Uploaded:'var(--ok)',Signed:'var(--warn)'};
+  el.innerHTML=DOCS.map(d=>`
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.65rem;margin-bottom:.52rem">
+      <div><div style="font-family:var(--fi);font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.13rem">${d.type}</div><div style="font-family:var(--fi);font-size:.65rem;color:var(--muted)">${d.id} · ${d.bk} · ${d.dt}</div></div>
+      <div style="display:flex;align-items:center;gap:.48rem">
+        <span class="badge" style="color:${stc[d.st]||'var(--muted)'};background:${stc[d.st]||'var(--surf-lo)'}22">${d.st}</span>
+        <button class="btn-sm gho" style="font-size:.65rem" onclick="toast('Downloading...','i')">Download</button>
+      </div>
+    </div>`).join('');
+}
+function rFleet(){
+  const el=$('fleet-list');if(!el)return;
+  el.innerHTML=FLEET_DATA.map(t=>`
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.65rem;margin-bottom:.58rem">
+      <div><div style="font-family:var(--fi);font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:.13rem">${t.pl}</div><div style="font-family:var(--fi);font-size:.66rem;color:var(--muted)">${t.type} · ${t.driver}</div><div style="font-family:var(--fi);font-size:.62rem;color:var(--copper);margin-top:.12rem">📍 ${t.gps}</div></div>
+      <div style="text-align:right">
+        <span class="badge ${t.st==='In Transit'?'b-trs':'b-ok'}">${t.st}</span>
+        <div style="font-family:var(--fi);font-size:.63rem;color:var(--muted);margin-top:.24rem">${t.load!=='—'?`Load: ${t.load}`:'Ready'}</div>
+        ${t.st==='Available'?`<button class="btn-sm pri" style="margin-top:.32rem;font-size:.65rem" onclick="navTo('loadboard')">Find Load →</button>`:''}
+      </div>
+    </div>`).join('');
+}
+function rAcademy(){
+  const el=$('acad-list');if(!el)return;
+  el.innerHTML=ACADEMY.map((cert,ci)=>`
+    <div class="cert-track">
+      <div class="cert-hdr" onclick="showCert(${ci})">
+        <div style="display:flex;align-items:center;gap:.58rem;flex:1">
+          <div class="cert-ic" style="background:${cert.color}18;border:1px solid ${cert.color}28">${cert.ic}</div>
+          <div>
+            <div style="font-family:var(--fi);font-size:.82rem;font-weight:700;color:var(--text)">${cert.cert}</div>
+            <div style="font-family:var(--fi);font-size:.63rem;color:var(--muted)">${cert.courses.length} courses · Certificate on completion</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.58rem">
+          <span style="font-family:var(--fi);font-size:.6rem;padding:3px 8px;border-radius:50px;background:${cert.color}14;color:${cert.color};font-weight:700">0/${cert.courses.length}</span>
+          <span style="color:var(--muted);font-size:.78rem" id="ca${ci}">▼</span>
+        </div>
+      </div>
+      <div id="cc${ci}" style="display:none">
+        ${cert.courses.map(c=>`
+          <div class="c-row" onclick="toast('Starting: ${c.n.substring(0,30)}...','s')">
+            <div><div style="font-family:var(--fi);font-size:.76rem;color:var(--text)">${c.n}</div><div style="font-family:var(--fi);font-size:.63rem;color:var(--muted);margin-top:.07rem">${c.lv} · ${c.dur}</div></div>
+            <button class="btn-sm gho" style="font-size:.65rem;flex-shrink:0">Start →</button>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function showCert(i){
+  const el=$('cc'+i),ar=$('ca'+i);if(!el)return;
+  const open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(ar)ar.textContent=open?'▲':'▼';
+}
+function rCorridorBars(){
+  const el=$('corr-bars');if(!el)return;
+  const data=[{n:'Mombasa–Kigali',l:18,p:100},{n:'Dar–Kampala',l:12,p:67},{n:'Kigali–Mombasa',l:9,p:50},{n:'Nairobi–Bujumbura',l:7,p:39},{n:'Kampala–Juba',l:5,p:28}];
+  el.innerHTML=data.map(d=>`
+    <div style="margin-bottom:.78rem">
+      <div style="display:flex;justify-content:space-between;font-family:var(--fi);font-size:.7rem;margin-bottom:.24rem">
+        <span style="color:var(--text)">${d.n}</span><span style="color:var(--navy);font-weight:600">${d.l}</span>
+      </div>
+      <div style="height:5px;background:var(--surf-hi);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${d.p}%;background:linear-gradient(90deg,#D4874A,#F0B429);border-radius:3px"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── POST ────────────────────────────────────────────────────────
+function checkRate(){
+  const rate=parseFloat($('pl-rate')?.value||0);
+  const sig=$('rate-sig');if(!sig)return;
+  const market=2200;
+  if(rate>0){
+    const diff=Math.round(((rate-market)/market)*100);
+    sig.style.display='block';
+    if(Math.abs(diff)>20){
+      sig.style.background=diff>0?'var(--warn-bg)':'var(--ok-bg)';
+      sig.style.color=diff>0?'var(--warn)':'var(--ok)';
+      sig.style.border=`1px solid ${diff>0?'rgba(198,89,0,.2)':'rgba(0,109,67,.2)'}`;
+      sig.innerHTML=`${diff>0?'⚠️':'✓'} <strong>PricingAgent:</strong> Rate ($${rate.toLocaleString()}) is ${Math.abs(diff)}% ${diff>0?'above':'below'} market avg ($${market.toLocaleString()}/FTL).`;
+    } else {
+      sig.style.background='var(--ok-bg)';sig.style.color='var(--ok)';
+      sig.style.border='1px solid rgba(0,109,67,.2)';
+      sig.innerHTML=`✓ <strong>PricingAgent:</strong> Rate within market range. Good conditions.`;
+    }
+  } else { sig.style.display='none'; }
+}
+function postLoad(){toast('✓ Posted! FraudAgent: PASS. MatchAgent alerting top 3 carriers.','s')}
+function postLoadM(){closeM('post-m');toast('✓ Load live! FraudAgent: PASS.','s')}
+function selPlan(name){closeM('upgrade-m');toast(`Upgrading to ${name}. DPO payment page loading...`,'s')}
+
+// ─── MISSION CONTROL ─────────────────────────────────────────────
+const MC_PASS='KOUM2026';// In production: env var, hashed, server-validated
+
+function renderMC(){
+  const mc=document.getElementById('mc');
+  if(!mc)return;
+  if(!S.mcAuth){
+    renderMCAccess();
+    return;
+  }
+  renderMCFull();
+}
+function renderMCAccess(){
+  const mc=document.getElementById('mc');
+  const L=T[S.lang]||T.en;
+  mc.innerHTML=`
+    <div style="position:relative;z-index:2;min-height:100svh;display:flex;flex-direction:column">
+      <div class="mc-topbar">
+        <div class="mc-logo">K<span class="o">O</span>UM</div>
+        <div class="mc-badge">MISSION CONTROL</div>
+        <div id="mc-clock" class="mc-clock" style="margin-left:auto">--:--:-- EAT</div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:2rem;position:relative;z-index:2">
+        <div style="font-size:3rem;margin-bottom:1.1rem;text-shadow:0 0 30px rgba(0,191,255,.5)">⬡</div>
+        <div style="font-family:var(--fd);font-size:1.55rem;font-weight:300;color:#e0f4ff;margin-bottom:.55rem">${L.mc_access_t}</div>
+        <div style="font-family:var(--fi);font-size:.76rem;color:rgba(0,191,255,.45);line-height:1.65;max-width:320px;margin-bottom:1.5rem">${L.mc_access_s}</div>
+        <div class="mc-access-box">
+          <div class="mc-access-t">${L.mc_access_t}</div>
+          <input class="mc-fi" type="password" id="mc-pw" placeholder="${L.mc_placeholder}" onkeydown="if(event.key==='Enter')mcAuth()"/>
+          <button class="mc-btn" onclick="mcAuth()">${L.mc_btn}</button>
+          <div id="mc-err" style="font-family:var(--fi);font-size:.68rem;color:var(--mc-red);margin-top:.55rem;display:none">${L.mc_wrong}</div>
+        </div>
+        <button style="margin-top:1.4rem;background:transparent;border:none;color:rgba(0,191,255,.35);font-family:var(--fi);font-size:.68rem;cursor:pointer" onclick="goLand()">← Return</button>
+      </div>
+    </div>`;
+  startMCClock();
+}
+function mcAuth(){
+  const pw=$('mc-pw')?.value;
+  if(pw===MC_PASS){S.mcAuth=true;renderMCFull()}
+  else{const e=$('mc-err');if(e){e.style.display='block';setTimeout(()=>e.style.display='none',2200);}}
+}
+function startMCClock(){
+  function tick(){const cl=$('mc-clock');if(!cl)return;const n=new Date();cl.textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Africa/Kigali'})+' EAT';setTimeout(tick,1000)}
+  tick();
+}
+function renderMCFull(){
+  const mc=document.getElementById('mc');
+  mc.innerHTML=`
+    <div class="mc-inner">
+      <div class="mc-topbar">
+        <div class="mc-logo">K<span class="o">O</span>UM</div>
+        <div class="mc-badge">ZAPHENATHENVOY MISSION CONTROL</div>
+        <div class="mc-status">SYSTEMS NOMINAL</div>
+        <div id="mc-clock" class="mc-clock">--:--:-- EAT</div>
+        <button onclick="goApp()" style="margin-left:1.2rem;background:rgba(255,59,48,.15);border:1px solid rgba(255,59,48,.4);border-radius:8px;padding:.6rem 1.4rem;color:#ff3a3a;font-family:var(--fi);font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.04em">EXIT TO DASHBOARD</button>
+      </div>
+
+      <div class="mc-canvas">
+
+        <!-- KPI ROW: spans full -->
+        <div class="mc-card span3" style="padding:.9rem 1.1rem">
+          <div class="mc-card-t">Platform Vitals</div>
+          <div class="mc-kpi-row">
+            <div class="mc-kpi"><div class="mc-kpi-v ok">47</div><div class="mc-kpi-l">Total Loads</div><div class="mc-kpi-sub">all time</div></div>
+            <div class="mc-kpi"><div class="mc-kpi-v">5</div><div class="mc-kpi-l">Active Now</div></div>
+            <div class="mc-kpi"><div class="mc-kpi-v ok">3</div><div class="mc-kpi-l">In Transit</div></div>
+            <div class="mc-kpi" style="animation:glow-pulse 3s infinite"><div class="mc-kpi-v warn">2</div><div class="mc-kpi-l">Fraud Flagged</div></div>
+            <div class="mc-kpi"><div class="mc-kpi-v" style="color:var(--mc-amber)">$0</div><div class="mc-kpi-l">MRR</div><div class="mc-kpi-sub">Pre-revenue</div></div>
+          </div>
+        </div>
+
+        <!-- EAC MAP -->
+        <div class="mc-card span2">
+          <div class="mc-card-t">Live EAC Network · 38 Countries</div>
+          <div class="mc-map-bg">
+            <svg viewBox="0 0 580 280" style="width:100%;height:100%;background:#020a12">
+              <defs>
+                <filter id="mc-glo"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <marker id="mc-arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#00bfff"/></marker>
+              </defs>
+              <!-- Grid lines -->
+              <line x1="0" y1="70" x2="580" y2="70" stroke="rgba(0,191,255,.04)" stroke-width="1"/>
+              <line x1="0" y1="140" x2="580" y2="140" stroke="rgba(0,191,255,.04)" stroke-width="1"/>
+              <line x1="0" y1="210" x2="580" y2="210" stroke="rgba(0,191,255,.04)" stroke-width="1"/>
+              <line x1="145" y1="0" x2="145" y2="280" stroke="rgba(0,191,255,.04)" stroke-width="1"/>
+              <line x1="290" y1="0" x2="290" y2="280" stroke="rgba(0,191,255,.04)" stroke-width="1"/>
+              <line x1="435" y1="0" x2="435" y2="280" stroke="rgba(0,191,255,.04)" stroke-width="1"/>
+              <!-- Country outlines -->
+              <path d="M310 45Q330 42 348 52Q365 62 370 80Q374 96 368 112Q360 128 350 138Q338 150 328 162Q315 172 308 184Q302 194 298 205" fill="rgba(0,27,68,.5)" stroke="rgba(0,191,255,.15)" stroke-width=".8"/>
+              <path d="M298 205Q310 202 322 210Q337 218 342 232Q348 244 342 256Q335 265 320 268Q305 272 292 268Q278 262 272 252Q266 240 270 228Q274 216 283 210Z" fill="rgba(0,27,68,.5)" stroke="rgba(0,191,255,.15)" stroke-width=".8"/>
+              <path d="M198 158Q210 154 218 160Q228 168 225 180Q222 190 212 194Q202 197 194 191Q186 184 188 173Q190 164 198 158Z" fill="rgba(0,47,68,.6)" stroke="rgba(0,229,160,.2)" stroke-width=".8"/>
+              <path d="M214 112Q228 108 238 116Q248 124 248 136Q248 147 240 154Q230 160 218 160Q206 160 200 152Q194 143 196 132Q198 121 214 112Z" fill="rgba(0,27,68,.5)" stroke="rgba(0,191,255,.15)" stroke-width=".8"/>
+              <!-- City dots -->
+              <circle cx="348" cy="105" r="7" fill="#00bfff" filter="url(#mc-glo)" style="animation:pulse 2s infinite"/>
+              <text x="358" y="109" fill="#00bfff" font-size="9" font-family="Courier New">MOMBASA</text>
+              <circle cx="198" cy="168" r="7" fill="#00e5a0" filter="url(#mc-glo)" style="animation:pulse 2s .4s infinite"/>
+              <text x="207" y="172" fill="#00e5a0" font-size="9" font-family="Courier New">KIGALI</text>
+              <circle cx="308" cy="142" r="5" fill="#aec6ff" opacity=".7"/>
+              <text x="316" y="146" fill="rgba(174,198,255,.6)" font-size="8" font-family="Courier New">NAIROBI</text>
+              <circle cx="222" cy="141" r="5" fill="#aec6ff" opacity=".7"/>
+              <text x="230" y="145" fill="rgba(174,198,255,.6)" font-size="8" font-family="Courier New">KAMPALA</text>
+              <circle cx="300" cy="178" r="4" fill="#fbbc00" opacity=".6"/>
+              <text x="308" y="182" fill="rgba(251,188,0,.5)" font-size="7" font-family="Courier New">DAR</text>
+              <!-- Routes -->
+              <path d="M348 105Q330 122 308 142Q288 154 222 141Q210 150 198 168" fill="none" stroke="#00bfff" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#mc-arr)" opacity=".65"/>
+              <path d="M298 205Q310 220 300 178Q295 165 222 141" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="5 4" opacity=".45"/>
+              <!-- Truck markers -->
+              <circle cx="280" cy="148" r="9" fill="rgba(240,180,41,.9)" filter="url(#mc-glo)"/>
+              <text x="275" y="152" fill="#000" font-size="8" font-family="Courier New" font-weight="800">🚛</text>
+              <circle cx="280" cy="148" r="16" fill="none" stroke="#F0B429" stroke-width=".8" opacity=".2" style="animation:pulse 2s infinite"/>
+              <circle cx="320" cy="130" r="7" fill="rgba(0,229,160,.85)" filter="url(#mc-glo)" style="animation:pulse 2s .5s infinite"/>
+              <text x="315" y="134" fill="#000" font-size="7" font-family="Courier New">🚛</text>
+              <!-- Legend -->
+              <text x="10" y="275" fill="rgba(0,191,255,.3)" font-size="7" font-family="Courier New">LIVE · 2 TRUCKS · TRANCKING AGENT ACTIVE · SET GOOGLE_MAPS_KEY FOR FULL MAP</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- ENVOY STATUS -->
+        <div class="mc-card">
+          <div class="mc-card-t">ZaphenathEnvoy Orchestrator</div>
+          <div class="mc-envoy" style="flex-direction:column;align-items:flex-start;gap:.7rem">
+            <div style="display:flex;align-items:center;gap:.7rem;width:100%">
+              <div class="mc-envoy-ic">⬡</div>
+              <div>
+                <div class="mc-envoy-t">Special Envoy · Zaphenath Ltd</div>
+                <div class="mc-envoy-name" style="font-size:.85rem">ZaphenathEnvoy</div>
+              </div>
+              <div style="margin-left:auto;text-align:right">
+                <div class="mc-st-live">● ORCHESTRATING</div>
+                <div class="mc-next">Next: 06:00 EAT briefing</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;width:100%">
+              <div style="background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.12);border-radius:6px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(0,229,160,.5)">Status</div><div style="font-size:.72rem;font-weight:700;color:var(--mc-green)">Active</div></div>
+              <div style="background:rgba(0,191,255,.05);border:1px solid rgba(0,191,255,.1);border-radius:6px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(0,191,255,.4)">Agents</div><div style="font-size:.72rem;font-weight:700;color:#00bfff">23 configured</div></div>
+              <div style="background:rgba(0,191,255,.04);border:1px solid rgba(0,191,255,.08);border-radius:6px;padding:.5rem;grid-column:span 2"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(0,191,255,.4);margin-bottom:.22rem">Last Action</div><div style="font-family:'Courier New',monospace;font-size:.64rem;color:rgba(0,191,255,.55)">FRAUD_AGENT → 2 loads cleared · FraudAgent scan complete</div></div>
+            </div>
+            <button onclick="sendBriefing()" style="margin-top:.5rem;padding:.3rem .75rem;border-radius:6px;border:1px solid rgba(0,191,255,.3);background:rgba(0,191,255,.08);color:#00bfff;font-size:.62rem;font-weight:700;cursor:pointer;width:100%">SEND BRIEFING</button>
+          </div>
+        </div>
+
+        <!-- CORRIDOR METRICS -->
+        <div class="mc-card">
+          <div class="mc-card-t">EAC Corridor Load Volume</div>
+          ${[{n:'Mombasa–Kigali',l:18,p:100},{n:'Dar–Kampala',l:12,p:67},{n:'Kigali–Mombasa',l:9,p:50},{n:'Nairobi–Bujumbura',l:7,p:39},{n:'Kampala–Juba',l:5,p:28}].map(d=>`
+            <div class="mc-corr-item">
+              <div class="mc-corr-name">${d.n}</div>
+              <div class="mc-corr-track"><div class="mc-corr-fill" style="width:${d.p}%"></div></div>
+              <div class="mc-corr-val">${d.l}</div>
+            </div>`).join('')}
+        </div>
+
+        <!-- SYSTEM LOG -->
+        <div class="mc-card">
+          <div class="mc-card-t">System Log</div>
+          ${[
+            {ic:'🛡️',msg:'FraudAgent: Load KM-1042 scored 2/12 — CLEAR',t:'14:32',cls:'ok'},
+            {ic:'⚠️',msg:'FraudAgent: New account flagged — velocity limit exceeded',t:'14:18',cls:'alert'},
+            {ic:'🚛',msg:'BackhaulAgent: Return load matched for KBA 772K',t:'13:55',cls:'ok'},
+            {ic:'📍',msg:'TrackingAgent: KBA 772K reached Namanga Border',t:'13:22',cls:''},
+            {ic:'🔴',msg:'FraudAgent: Load #847 BLOCKED — blacklisted keyword',t:'12:45',cls:'critical'},
+            {ic:'✅',msg:'NotificationAgent: Welcome email sent to 3 new users',t:'11:30',cls:'ok'},
+          ].map(e=>`<div class="mc-log-item ${e.cls}"><span class="mc-log-ic">${e.ic}</span><span class="mc-log-msg">${e.msg}</span><span class="mc-log-t">${e.t}</span></div>`).join('')}
+        </div>
+
+        <!-- AGENT STATUS GRID -->
+        <div class="mc-card span2">
+          <div class="mc-card-t">AI Agent Status (${MC_AGENTS.length} Configured)</div>
+          <div class="mc-agents">
+            ${MC_AGENTS.map(a=>`
+              <div class="mc-agent">
+                <div class="mc-agent-name">${a.n}</div>
+                <div class="mc-agent-desc">${a.d}</div>
+                <div class="mc-agent-st ${a.s}">${a.s==='live'?'● LIVE':a.s==='build'?'⚡ BUILDING':'○ READY'}</div>
+                ${a.n==='ZaphenathEnvoy'?`<button onclick="sendBriefing()" style="margin-top:.5rem;padding:.3rem .75rem;border-radius:6px;border:1px solid rgba(0,191,255,.3);background:rgba(0,191,255,.08);color:#00bfff;font-size:.62rem;font-weight:700;cursor:pointer">SEND BRIEFING</button>`:''}
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- INVESTOR PANEL -->
+        <div class="mc-card">
+          <div class="mc-card-t">Investor Metrics</div>
+          ${[
+            {l:'Total Users',v:'1'},
+            {l:'Active Loads MTD',v:'5'},
+            {l:'Completions MTD',v:'3'},
+            {l:'Completion Rate',v:'60%'},
+            {l:'MRR',v:'$0'},
+            {l:'Raise Target',v:'$150K SAFE'},
+            {l:'Pre-money Valuation',v:'$1M'},
+            {l:'Equity Offered',v:'13%'},
+            {l:'Launch Date',v:'April 1, 2026'},
+            {l:'EAC Market 2025',v:'$25.1B'},
+            {l:'Market CAGR',v:'4.67%'},
+          ].map(r=>`<div class="mc-invest-row"><div class="mc-invest-label">${r.l}</div><div class="mc-invest-val">${r.v}</div></div>`).join('')}
+          <div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid rgba(0,191,255,.07)">
+            <div style="font-family:'Courier New',monospace;font-size:.62rem;color:rgba(0,191,255,.35);line-height:1.6">EAC Customs Bond live Mar 23, 2026. $2B logistics liquidity freed. Koum position: optimal.</div>
+          </div>
+        </div>
+
+      </div><!-- /mc-canvas -->
+    </div><!-- /mc-inner -->`;
+  startMCClock();
+}
+
+// ─── MODALS ──────────────────────────────────────────────────────
+function openM(id){$(id).style.display='flex'}
+function closeM(id){$(id).style.display='none'}
+
+// ─── SEND BRIEFING ───────────────────────────────────────────────
+function sendBriefing(){
+  const existing=document.getElementById('briefing-modal');
+  if(existing){existing.style.display='flex';return;}
+  const m=document.createElement('div');
+  m.id='briefing-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+  m.innerHTML=`<div style="background:#0a1628;border:1px solid rgba(0,191,255,.2);border-radius:16px;padding:2rem;max-width:380px;width:90%;text-align:center">
+    <div style="font-family:'Courier New',monospace;color:#00bfff;font-size:.72rem;letter-spacing:.18em;margin-bottom:.8rem">ZAPHENATH ENVOY</div>
+    <div style="color:#e8e6e3;font-size:.9rem;font-weight:600;margin-bottom:.4rem">Morning briefing dispatched to Telegram.</div>
+    <div style="color:rgba(174,198,255,.5);font-size:.75rem;margin-bottom:1.4rem">Next: 06:00 EAT tomorrow.</div>
+    <button onclick="document.getElementById('briefing-modal').style.display='none'" style="padding:.6rem 1.6rem;border-radius:8px;border:none;background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;font-weight:700;font-size:.78rem;cursor:pointer">ACKNOWLEDGED</button>
+  </div>`;
+  document.body.appendChild(m);
+  m.onclick=function(e){if(e.target===m)m.style.display='none';};
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────
+function toast(msg,type=''){
+  const el=$('toast');
+  el.textContent=msg;
+  el.className=`toast on${type?' '+type:''}`;
+  clearTimeout(window._t);
+  window._t=setTimeout(()=>el.classList.remove('on'),4200);
+}
+
+// ─── SUPABASE ────────────────────────────────────────────────────
+async function fetchLoads(){
+  try{
+    const r=await fetch(`${SB}/rest/v1/loads?select=*&status=eq.active&order=created_at.desc&limit=50`,{headers:{'apikey':ANON,'Authorization':`Bearer ${ANON}`}});
+    if(r.ok){const d=await r.json();if(d?.length>0){S.loads=d.map(l=>({...l,bids:l.bid_count||0}));return;}}
+  }catch(e){}
+  S.loads=[...LOADS];
+}
+
+// ─── INIT ────────────────────────────────────────────────────────
+fetchLoads();
+
+// ─── AUTO DARK/LIGHT MODE ────────────────────────────────────────
+(function(){
+  const prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if(prefersDark){
+    S.theme='dark';
+    document.documentElement.setAttribute('data-theme','dark');
+    const btn=document.getElementById('theme-tog');
+    const knob=document.getElementById('tt-k');
+    if(btn)btn.classList.add('dark');
+    if(knob)knob.textContent='🌙';
+  }
+  // Listen for system changes
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+      // Only auto-switch if user hasn't manually toggled (we track by checking if current theme matches device)
+      S.theme=e.matches?'dark':'light';
+      document.documentElement.setAttribute('data-theme',S.theme);
+      const btn=document.getElementById('theme-tog');
+      const knob=document.getElementById('tt-k');
+      if(btn)btn.classList.toggle('dark',S.theme==='dark');
+      if(knob)knob.textContent=S.theme==='dark'?'🌙':'☀️';
+    });
+  }
+})();
+
+document.addEventListener('DOMContentLoaded',()=>{
+  applyTranslations();
+});
+</script>
+</body>
+</html>
