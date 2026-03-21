@@ -108,6 +108,13 @@ button,input,select,textarea{font-family:var(--fu)}
 .rpill{padding:.52rem 1.12rem;border-radius:50px;border:1px solid rgba(212,135,74,.28);background:transparent;color:rgba(247,242,234,.55);font-size:.73rem;font-weight:500;cursor:pointer;transition:var(--t)}
 .rpill:hover,.rpill.on{background:rgba(212,135,74,.1);border-color:#D4874A;color:#F7F2EA}
 .h-sub{font-size:.8rem;color:rgba(247,242,234,.38);max-width:360px;line-height:1.72;margin:0 auto 2rem}
+.hero-headline{margin-bottom:1.2rem}
+.h-line{font-family:var(--fd);font-size:clamp(2rem,6vw,4rem);font-weight:300;line-height:1.15;color:#F7F2EA;opacity:0;transform:translateY(18px);animation:heroLine .7s ease forwards}
+.h-line-2{color:#D4874A}
+.h-line-1{animation-delay:.3s}
+.h-line-2{animation-delay:.65s}
+.h-line-3{animation-delay:1s}
+@keyframes heroLine{to{opacity:1;transform:translateY(0)}}
 .ctas{display:flex;gap:.55rem;flex-wrap:wrap;justify-content:center}
 .btn-p{padding:.75rem 1.65rem;border-radius:10px;border:none;background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;font-size:.8rem;font-weight:700;cursor:pointer;transition:var(--ts);box-shadow:0 4px 16px rgba(212,135,74,.28)}
 .btn-p:hover{filter:brightness(1.07);transform:translateY(-2px)}
@@ -857,7 +864,11 @@ select.fi option{background:#1A1210;color:#F7F2EA}
 
     <div class="wm au au1">K<span class="o">O</span>UM</div>
     <div class="h-rule au au2"></div>
-    <div class="h-tl au au2" style="font-style:normal;color:#F7F2EA;font-size:clamp(1rem,2.5vw,1.3rem);letter-spacing:.01em;margin-bottom:.6rem">Move your goods. Get paid. Know where your truck is.</div>
+    <div class="hero-headline">
+      <div class="h-line h-line-1">Move your goods.</div>
+      <div class="h-line h-line-2">Get paid.</div>
+      <div class="h-line h-line-3">Know where your truck is.</div>
+    </div>
     <div class="h-tl au au2" id="hero-tl" style="font-size:clamp(.72rem,1.6vw,.88rem);opacity:.55">Your load shall be borne. — Isaiah 46:4</div>
 
     <div class="role-row au au3">
