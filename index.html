@@ -112,6 +112,8 @@ button,input,select,textarea{font-family:var(--fu)}
 .particle{position:absolute;border-radius:50%;background:#B87333;opacity:0;animation:floatUp linear infinite}
 @keyframes floatUp{0%{transform:translateY(100vh) translateX(0);opacity:0}5%{opacity:.15}90%{opacity:.15}100%{transform:translateY(-80px) translateX(40px);opacity:0}}
 .hero-headline{margin-bottom:1.2rem}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
 .h-line{font-family:var(--fd);font-size:clamp(2rem,6vw,4rem);font-weight:300;line-height:1.15;color:#F7F2EA;opacity:0;transform:translateY(18px);animation:heroLine .7s ease forwards}
 .h-line-2{color:#D4874A}
 .h-line-1{animation-delay:.3s}
@@ -893,6 +895,35 @@ select.fi option{background:#1A1210;color:#F7F2EA}
       <div><div class="sn">8</div><div class="sl">EAC Corridors</div></div>
       <div><div class="sn">$25B</div><div class="sl">EAC Market</div></div>
       <div><div class="sn">Apr 1</div><div class="sl">Launch</div></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works" style="background:#1A1210;border-top:1px solid rgba(184,115,51,.1);padding:4rem 1.5rem">
+    <div style="max-width:920px;margin:0 auto">
+      <div style="font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;color:#B87333;margin-bottom:.5rem;text-align:center">How It Works</div>
+      <h2 style="font-family:var(--fd);font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:300;color:#F7F2EA;text-align:center;margin-bottom:.5rem">Three steps. Your load moves.</h2>
+      <p style="text-align:center;font-size:.78rem;color:rgba(247,242,234,.35);max-width:440px;margin:0 auto 2.8rem;line-height:1.7">No phone calls. No WhatsApp chains. No lost paperwork. Just freight moving.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.8rem">
+        <div class="reveal" style="text-align:center;padding:1.4rem">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(212,135,74,.1);border:1px solid rgba(212,135,74,.2);display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;font-size:1.4rem">📦</div>
+          <div style="font-family:var(--fd);font-size:2.4rem;font-weight:300;color:#D4874A;line-height:1;margin-bottom:.5rem">01</div>
+          <div style="font-size:.88rem;font-weight:700;color:#F7F2EA;margin-bottom:.4rem">Post your load</div>
+          <div style="font-size:.74rem;color:rgba(247,242,234,.38);line-height:1.72">Origin, destination, cargo, rate. Live on the board in 60 seconds. FraudAgent clears it automatically.</div>
+        </div>
+        <div class="reveal" style="text-align:center;padding:1.4rem">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,109,67,.1);border:1px solid rgba(0,109,67,.2);display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;font-size:1.4rem">🤝</div>
+          <div style="font-family:var(--fd);font-size:2.4rem;font-weight:300;color:#D4874A;line-height:1;margin-bottom:.5rem">02</div>
+          <div style="font-size:.88rem;font-weight:700;color:#F7F2EA;margin-bottom:.4rem">Get matched</div>
+          <div style="font-size:.74rem;color:rgba(247,242,234,.38);line-height:1.72">MatchAgent scores every carrier. See the best 3 bids with ratings, truck type, and price. Accept in one tap.</div>
+        </div>
+        <div class="reveal" style="text-align:center;padding:1.4rem">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,27,68,.2);border:1px solid rgba(174,198,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;font-size:1.4rem">📍</div>
+          <div style="font-family:var(--fd);font-size:2.4rem;font-weight:300;color:#D4874A;line-height:1;margin-bottom:.5rem">03</div>
+          <div style="font-size:.88rem;font-weight:700;color:#F7F2EA;margin-bottom:.4rem">Track and get paid</div>
+          <div style="font-size:.74rem;color:rgba(247,242,234,.38);line-height:1.72">Live GPS from pickup to delivery. Payment releases on confirmation. Documents generated automatically.</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2765,6 +2796,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyTranslations();
   initParticles();
   renderLandingLoads();
+  const revealObs=new IntersectionObserver(entries=>entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
+  }),{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
 });
 </script>
 </body>
