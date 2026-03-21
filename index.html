@@ -1484,6 +1484,29 @@ const ACADEMY=[
     {n:'Scaling from 1 truck to 10',dur:'1h 30m',lv:'Advanced'},
   ]},
 ];
+const FLEET_GRID=Array.from({length:24},(_,i)=>({
+  id:`K${String(i+1).padStart(3,'0')}`,
+  plate:['KBA','KCB','UAF','RAD','TZA','UGA'][i%6]+' '+String(700+i)+'K',
+  driver:['James M.','Peter O.','David K.','Sarah N.','Paul A.','Mary W.'][i%6],
+  route:['Mombasa→Kigali','Dar→Kampala','Nairobi→Bujumbura','Kampala→Juba','Kigali→Mombasa','Dar→Kigali'][i%6],
+  status:i<14?'moving':i<18?'available':i<22?'border':'delayed',
+  progress:i<14?Math.min(15+i*5,95):0,
+  gps:['Namanga Border','Nairobi ICD','Kampala Depot','Dar Port','Kigali IZ','Juba Road'][i%6],
+  eta:i<14?`${2+Math.floor(i/4)}h`:'—',
+}));
+const FLEET_STATUS_COLOR={
+  moving:'#006d43',
+  available:'#224583',
+  border:'#c65900',
+  delayed:'#ba1a1a'
+};
+const FLEET_STATUS_LABEL={
+  moving:'🟢 Moving',
+  available:'⚪ Available',
+  border:'🟡 At Border',
+  delayed:'🔴 Delayed'
+};
+let fleetFilter='all';
 const MC_AGENTS=[
   {n:'FraudAgent',d:'12 risk indicators · auto-blocks',s:'live'},
   {n:'NotificationAgent',d:'Email + Telegram + WhatsApp',s:'live'},
@@ -2002,6 +2025,19 @@ function pgDashboard(){
     </div>`;
   return `<div class="page on" id="pg-dashboard">
     <div id="cmd-strip" style="background:linear-gradient(135deg,#001b44,#002f6c);border-radius:14px;padding:1.15rem 1.35rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.85rem;box-shadow:0 8px 32px rgba(0,27,68,.15)"></div>
+    <div id="dispatcher-top" style="display:none;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.72rem;flex-wrap:wrap;gap:.5rem">
+        <div style="font-family:var(--fd);font-size:.95rem;color:var(--text)">Fleet</div>
+        <div style="display:flex;gap:.32rem">
+          <button class="fleet-filter-btn btn-sm pri on" data-f="all" onclick="filterFleet('all')" style="font-size:.63rem">All 24</button>
+          <button class="fleet-filter-btn btn-sm gho" data-f="moving" onclick="filterFleet('moving')" style="font-size:.63rem">🟢 Moving</button>
+          <button class="fleet-filter-btn btn-sm gho" data-f="border" onclick="filterFleet('border')" style="font-size:.63rem">🟡 Border</button>
+          <button class="fleet-filter-btn btn-sm gho" data-f="delayed" onclick="filterFleet('delayed')" style="font-size:.63rem">🔴 Delayed</button>
+          <button class="fleet-filter-btn btn-sm gho" data-f="available" onclick="filterFleet('available')" style="font-size:.63rem">⚪ Free</button>
+        </div>
+      </div>
+      <div id="fleet-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.52rem"></div>
+    </div>
     ${planStrip}
     <div class="kpi-row">${kpis[S.role]||kpis.shipper}</div>
     <div class="dash-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem">
@@ -2939,6 +2975,40 @@ function countUp(el,target,dur){
   }
   requestAnimationFrame(upd);
 }
+function renderFleetGrid(){
+  const el=document.getElementById('fleet-grid');
+  if(!el)return;
+  const filtered=fleetFilter==='all'?FLEET_GRID:FLEET_GRID.filter(t=>t.status===fleetFilter);
+  el.innerHTML=filtered.map(t=>`
+    <div style="background:var(--card);border-radius:10px;padding:.82rem .9rem;box-shadow:var(--shadow-sm);border-left:3px solid ${FLEET_STATUS_COLOR[t.status]};cursor:pointer;transition:var(--t)"
+    onmouseover="this.style.boxShadow='var(--shadow)'"
+    onmouseout="this.style.boxShadow='var(--shadow-sm)'"
+    onclick="navTo('tracking')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.32rem">
+        <div style="font-family:var(--fi);font-size:.82rem;font-weight:700;color:var(--text)">${t.plate}</div>
+        <span style="font-family:var(--fi);font-size:.58rem;font-weight:700;color:${FLEET_STATUS_COLOR[t.status]}">${FLEET_STATUS_LABEL[t.status]}</span>
+      </div>
+      <div style="font-family:var(--fi);font-size:.65rem;color:var(--muted);margin-bottom:.22rem">${t.driver}</div>
+      <div style="font-family:var(--fi);font-size:.63rem;color:var(--subtle);margin-bottom:.38rem">${t.route}</div>
+      ${t.status==='moving'?`
+        <div style="height:3px;background:var(--surf-hi);border-radius:2px;overflow:hidden;margin-bottom:.22rem">
+          <div style="height:100%;width:${t.progress}%;background:${FLEET_STATUS_COLOR[t.status]};border-radius:2px;transition:width .6s"></div>
+        </div>
+        <div style="font-family:var(--fi);font-size:.6rem;color:var(--muted);display:flex;justify-content:space-between">
+          <span>📍 ${t.gps}</span><span>ETA ${t.eta}</span>
+        </div>`:`
+        <div style="font-family:var(--fi);font-size:.6rem;color:var(--copper)">📍 ${t.gps}</div>`}
+    </div>`).join('');
+}
+
+function filterFleet(f){
+  fleetFilter=f;
+  renderFleetGrid();
+  document.querySelectorAll('.fleet-filter-btn').forEach(b=>b.classList.remove('on'));
+  const active=document.querySelector(`.fleet-filter-btn[data-f="${f}"]`);
+  if(active)active.classList.add('on');
+}
+
 function renderCmdStrip(){
   const role=S.role;
   const strips={
@@ -2966,6 +3036,9 @@ function renderCmdStrip(){
       if(el2)countUp(el2,s.val,900);
     }
   });
+  const dt=document.getElementById('dispatcher-top');
+  if(dt)dt.style.display=S.role==='dispatcher'?'block':'none';
+  if(S.role==='dispatcher')renderFleetGrid();
 }
 document.addEventListener('DOMContentLoaded',()=>{
   applyTranslations();
