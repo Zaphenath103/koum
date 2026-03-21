@@ -1265,6 +1265,14 @@ select.fi option{background:#1A1210;color:#F7F2EA}
         <span id="live-lbl">Live</span>
       </div>
 
+      <!-- Notification bell -->
+      <div style="position:relative;flex-shrink:0" id="notif-wrap">
+        <button onclick="toggleNotifPanel()" style="background:transparent;border:none;font-size:1.05rem;cursor:pointer;color:var(--muted);padding:.2rem .3rem;position:relative;display:flex;align-items:center">
+          🔔
+          <span id="notif-dot" style="position:absolute;top:0;right:0;width:7px;height:7px;border-radius:50%;background:var(--err);border:1.5px solid var(--bg);display:none"></span>
+        </button>
+      </div>
+
       <!-- Controls -->
       <div class="tb-ctrl">
         <!-- Language toggle -->
@@ -1311,6 +1319,15 @@ select.fi option{background:#1A1210;color:#F7F2EA}
 </div>
   <!-- FAB — mobile only -->
   <button class="fab" id="fab-btn" onclick="openM('post-m')" title="Post Load">+</button>
+
+  <!-- NOTIFICATION PANEL -->
+  <div id="notif-panel" style="position:fixed;top:52px;right:0;width:295px;max-height:calc(100svh - 52px);overflow-y:auto;background:var(--card);border-left:1px solid var(--bdr);box-shadow:var(--shadow);z-index:50;transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column">
+    <div style="padding:.85rem 1rem .6rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr)">
+      <div style="font-family:var(--fd);font-size:.92rem;color:var(--text)">Notifications</div>
+      <div onclick="markAllRead()" style="font-size:.65rem;color:var(--navy);font-weight:600;cursor:pointer;opacity:.75">Mark all read</div>
+    </div>
+    <div id="notif-list" style="padding:.5rem .6rem;flex:1"></div>
+  </div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -1871,6 +1888,7 @@ function initApp(){
   renderNav();
   renderPages();
   updateCtaAndChip();
+  renderNotifs();
 }
 function updateCtaAndChip(){
   const L=T[S.lang]||T.en;
@@ -2287,6 +2305,7 @@ function switchRole(r,el){
   renderNav();
   renderPages();
   updateCtaAndChip();
+  renderNotifs();
   toast(`Switched to ${r.charAt(0).toUpperCase()+r.slice(1)} view`,'i');
 }
 
@@ -2850,6 +2869,61 @@ function renderLandingLoads(){
       </div>
     </div>`;
   }).join('');
+}
+const NOTIFS={
+  shipper:[
+    {ic:'💬',msg:'New bid: $2,250 — EA Haulage on Mombasa→Kigali',t:'2 min ago',unread:true,pg:'bids'},
+    {ic:'✅',msg:'Delivered: KM-2026-0039 confirmed',t:'1h ago',unread:false,pg:'bookings'},
+    {ic:'🤖',msg:'PricingAgent: Rate 8% above market',t:'2h ago',unread:false,pg:'post'},
+    {ic:'📄',msg:'CMR waybill ready for KM-2026-0042',t:'3h ago',unread:false,pg:'docs'},
+  ],
+  carrier:[
+    {ic:'📦',msg:'Load match: Dar→Kampala 12.5MT FMCG $1,850',t:'5 min ago',unread:true,pg:'loadboard'},
+    {ic:'🔄',msg:'BackhaulAgent: Return load Kigali→Mombasa $2,100',t:'20 min ago',unread:true,pg:'backhaul'},
+    {ic:'💰',msg:'Payment received: $2,250 for KM-2026-0042',t:'3h ago',unread:false,pg:'earnings'},
+    {ic:'⭐',msg:'New rating: 4.9 stars received',t:'5h ago',unread:false,pg:'dashboard'},
+  ],
+  broker:[
+    {ic:'💼',msg:'Commission earned: $285 on KM-2026-0044',t:'1h ago',unread:true,pg:'commissions'},
+    {ic:'👥',msg:'New client inquiry from Kampala Traders',t:'2h ago',unread:true,pg:'clients'},
+    {ic:'📊',msg:'Pool Mombasa-Kigali at 94% capacity',t:'4h ago',unread:false,pg:'pools'},
+  ],
+  dispatcher:[
+    {ic:'⚠️',msg:'KBA 772K: 2h delay at Namanga border',t:'15 min ago',unread:true,pg:'livemap'},
+    {ic:'📍',msg:'UAF 903H: Arrived Kigali Gikondo IZ',t:'45 min ago',unread:false,pg:'livemap'},
+    {ic:'🚛',msg:'3 trucks available — loads matched',t:'1h ago',unread:true,pg:'dispatch'},
+  ],
+};
+function renderNotifs(){
+  const list=document.getElementById('notif-list');
+  const dot=document.getElementById('notif-dot');
+  if(!list)return;
+  const ns=NOTIFS[S.role]||[];
+  const unread=ns.filter(n=>n.unread).length;
+  if(dot)dot.style.display=unread?'block':'none';
+  list.innerHTML=ns.map(n=>`
+    <div onclick="navTo('${n.pg}');closeNotifPanel()" style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem .45rem;border-radius:8px;cursor:pointer;background:${n.unread?'rgba(0,27,68,.04)':'transparent'};border-bottom:1px solid var(--bdr);transition:background .14s" onmouseover="this.style.background='var(--surf-lo)'" onmouseout="this.style.background='${n.unread?'rgba(0,27,68,.04)':'transparent'}'">
+      <span style="font-size:.95rem;flex-shrink:0">${n.ic}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--fi);font-size:.71rem;color:var(--text);line-height:1.42;font-weight:${n.unread?'600':'400'}">${n.msg}</div>
+        <div style="font-family:var(--fi);font-size:.6rem;color:var(--subtle);margin-top:.07rem">${n.t}</div>
+      </div>
+      ${n.unread?'<div style="width:6px;height:6px;border-radius:50%;background:var(--navy);flex-shrink:0;margin-top:5px"></div>':''}
+    </div>`).join('');
+}
+function toggleNotifPanel(){
+  const p=document.getElementById('notif-panel');
+  if(!p)return;
+  const open=p.style.transform==='translateX(0px)'||p.style.transform==='translateX(0)';
+  p.style.transform=open?'translateX(100%)':'translateX(0)';
+}
+function closeNotifPanel(){
+  const p=document.getElementById('notif-panel');
+  if(p)p.style.transform='translateX(100%)';
+}
+function markAllRead(){
+  (NOTIFS[S.role]||[]).forEach(n=>n.unread=false);
+  renderNotifs();
 }
 document.addEventListener('DOMContentLoaded',()=>{
   applyTranslations();
