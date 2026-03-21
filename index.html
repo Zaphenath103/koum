@@ -1889,6 +1889,7 @@ function initApp(){
   renderPages();
   updateCtaAndChip();
   renderNotifs();
+  renderCmdStrip();
 }
 function updateCtaAndChip(){
   const L=T[S.lang]||T.en;
@@ -2000,6 +2001,7 @@ function pgDashboard(){
       <button class="btn-sm pri" onclick="navTo('academy')" style="font-size:.67rem">Start →</button>
     </div>`;
   return `<div class="page on" id="pg-dashboard">
+    <div id="cmd-strip" style="background:linear-gradient(135deg,#001b44,#002f6c);border-radius:14px;padding:1.15rem 1.35rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.85rem;box-shadow:0 8px 32px rgba(0,27,68,.15)"></div>
     ${planStrip}
     <div class="kpi-row">${kpis[S.role]||kpis.shipper}</div>
     <div class="dash-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem">
@@ -2306,6 +2308,7 @@ function switchRole(r,el){
   renderPages();
   updateCtaAndChip();
   renderNotifs();
+  renderCmdStrip();
   toast(`Switched to ${r.charAt(0).toUpperCase()+r.slice(1)} view`,'i');
 }
 
@@ -2924,6 +2927,45 @@ function closeNotifPanel(){
 function markAllRead(){
   (NOTIFS[S.role]||[]).forEach(n=>n.unread=false);
   renderNotifs();
+}
+function countUp(el,target,dur){
+  if(!el)return;
+  const start=performance.now();
+  function upd(now){
+    const p=Math.min((now-start)/dur,1);
+    const e=1-Math.pow(1-p,3);
+    el.textContent=Math.floor(target*e).toLocaleString();
+    if(p<1)requestAnimationFrame(upd);
+  }
+  requestAnimationFrame(upd);
+}
+function renderCmdStrip(){
+  const role=S.role;
+  const strips={
+    shipper:{greeting:'Your freight is moving.',stats:[{id:'cmd-loads',val:5,label:'Active Loads',color:'#F0B429'},{id:'cmd-bids',val:11,label:'Bids Waiting',color:'#D4874A'},{id:'cmd-rev',val:'$12k',label:'Revenue MTD',color:'#59de9b'}],cta:'+ Post Load',ctaFn:"openM('post-m')"},
+    carrier:{greeting:'Find your next load.',stats:[{id:'cmd-avail',val:47,label:'Available Loads',color:'#59de9b'},{id:'cmd-trucks',val:2,label:'Trucks Active',color:'#F0B429'},{id:'cmd-earn',val:'$4.2k',label:'Earned MTD',color:'#59de9b'}],cta:'Find Loads',ctaFn:"navTo('loadboard')"},
+    broker:{greeting:'Your commissions are running.',stats:[{id:'cmd-comm',val:'$3.2k',label:'Commissions MTD',color:'#59de9b'},{id:'cmd-active',val:18,label:'Active Loads',color:'#aec6ff'},{id:'cmd-clients',val:7,label:'Active Clients',color:'#F0B429'}],cta:'Manage Loads',ctaFn:"navTo('commissions')"},
+    dispatcher:{greeting:'Your fleet is on the road.',stats:[{id:'cmd-moving',val:16,label:'Moving Now',color:'#59de9b'},{id:'cmd-alerts',val:4,label:'Need Attention',color:'#ff8c00'},{id:'cmd-today',val:'$8.4k',label:'Today Revenue',color:'#59de9b'}],cta:'Fleet Map',ctaFn:"navTo('livemap')"},
+  };
+  const cfg=strips[role]||strips.shipper;
+  const el=document.getElementById('cmd-strip');
+  if(!el)return;
+  el.innerHTML=`
+    <div style="flex:1;min-width:180px">
+      <div style="font-family:var(--fi);font-size:.56rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(174,198,255,.45);margin-bottom:.2rem">Good morning</div>
+      <div style="font-family:var(--fd);font-size:1.3rem;font-weight:300;color:#fff">${cfg.greeting}</div>
+    </div>
+    <div style="display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center">
+      ${cfg.stats.map((s,i)=>`${i>0?'<div style="width:1px;background:rgba(255,255,255,.1);height:36px"></div>':''}<div style="text-align:center"><div id="${s.id}" style="font-family:var(--fd);font-size:2rem;font-weight:300;color:${s.color};line-height:1">${s.val}</div><div style="font-family:var(--fi);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(174,198,255,.4);margin-top:.12rem">${s.label}</div></div>`).join('')}
+    </div>
+    <button onclick="${cfg.ctaFn}" style="background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;border:none;border-radius:10px;padding:.68rem 1.35rem;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 4px 14px rgba(212,135,74,.35);transition:all .18s" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">${cfg.cta}</button>
+  `;
+  cfg.stats.forEach(s=>{
+    if(typeof s.val==='number'){
+      const el2=document.getElementById(s.id);
+      if(el2)countUp(el2,s.val,900);
+    }
+  });
 }
 document.addEventListener('DOMContentLoaded',()=>{
   applyTranslations();
