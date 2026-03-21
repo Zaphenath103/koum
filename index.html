@@ -896,6 +896,24 @@ select.fi option{background:#1A1210;color:#F7F2EA}
     </div>
   </section>
 
+  <!-- LIVE LOADS PREVIEW -->
+  <section id="sec-loads" style="background:#030303;border-top:1px solid rgba(184,115,51,.1);padding:3.5rem 1.5rem">
+    <div style="max-width:980px;margin:0 auto">
+      <div style="font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;color:#B87333;margin-bottom:.5rem">Live Right Now</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.6rem">
+        <h2 style="font-family:var(--fd);font-size:clamp(1.4rem,3.5vw,2rem);font-weight:300;color:#F7F2EA;margin:0">Loads on the board right now.</h2>
+        <div style="display:flex;align-items:center;gap:.35rem;font-size:.65rem;color:#59de9b">
+          <span style="width:6px;height:6px;border-radius:50%;background:#59de9b;display:inline-block;animation:pulse 2s infinite"></span>
+          Live · No login needed
+        </div>
+      </div>
+      <div id="land-loads" style="display:flex;flex-direction:column;gap:.55rem;margin-bottom:1.4rem"></div>
+      <div style="text-align:center">
+        <button onclick="goOnboard()" style="background:transparent;border:1px solid rgba(184,115,51,.28);color:rgba(247,242,234,.55);border-radius:10px;padding:.72rem 1.6rem;font-size:.78rem;cursor:pointer;transition:all .18s" onmouseover="this.style.color='#F7F2EA';this.style.borderColor='#B87333'" onmouseout="this.style.color='rgba(247,242,234,.55)';this.style.borderColor='rgba(184,115,51,.28)'">Join free to post loads or place bids →</button>
+      </div>
+    </div>
+  </section>
+
   <!-- PRICING -->
   <section class="land-pricing" id="sec-pricing">
     <div class="lp-in">
@@ -2713,9 +2731,40 @@ function initParticles(){
     c.appendChild(el);
   });
 }
+function renderLandingLoads(){
+  const el=document.getElementById('land-loads');
+  if(!el)return;
+  const preview=LOADS.slice(0,3);
+  const F={KE:'🇰🇪',RW:'🇷🇼',TZ:'🇹🇿',UG:'🇺🇬',BI:'🇧🇮',SS:'🇸🇸'};
+  el.innerHTML=preview.map(l=>{
+    const days=Math.ceil((new Date(l.pickup)-Date.now())/864e5);
+    return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(184,115,51,.1);border-radius:10px;padding:.88rem 1rem;display:grid;grid-template-columns:1fr auto;gap:.8rem;align-items:center;cursor:pointer;transition:all .18s" onmouseover="this.style.borderColor='rgba(212,135,74,.3)';this.style.background='rgba(212,135,74,.04)'" onmouseout="this.style.borderColor='rgba(184,115,51,.1)';this.style.background='rgba(255,255,255,.03)'" onclick="goOnboard()">
+      <div>
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.38rem;flex-wrap:wrap">
+          <span style="font-weight:700;font-size:.88rem;color:#F7F2EA">${F[l.occ]||''} ${l.oc}</span>
+          <span style="color:#D4874A">→</span>
+          <span style="font-weight:700;font-size:.88rem;color:#F7F2EA">${F[l.dcc]||''} ${l.dc}</span>
+          <span style="font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:50px;background:rgba(91,155,213,.12);color:#aec6ff">${l.type}</span>
+          ${l.bids>0?`<span style="font-size:.6rem;color:#7c3aed">💬 ${l.bids} bids</span>`:''}
+        </div>
+        <div style="display:flex;gap:.7rem;flex-wrap:wrap">
+          <span style="font-size:.67rem;color:rgba(247,242,234,.4)">📦 ${l.cargo}</span>
+          <span style="font-size:.67rem;color:rgba(247,242,234,.4)">⚖️ ${(l.kg/1e3).toFixed(1)}MT</span>
+          <span style="font-size:.67rem;color:${days<=2?'#ff6b6b':days<=4?'#fbbc00':'rgba(247,242,234,.4)'}">📅 ${days<=0?'Today':days===1?'Tomorrow':days+'d'}</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--fd);font-size:1.3rem;font-weight:300;color:#F0B429">${l.rate.toLocaleString()}</div>
+        <div style="font-size:.6rem;color:rgba(247,242,234,.3);margin-bottom:.4rem">USD</div>
+        <button onclick="event.stopPropagation();goOnboard()" style="background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;border:none;border-radius:7px;padding:.3rem .75rem;font-size:.67rem;font-weight:700;cursor:pointer">Bid →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 document.addEventListener('DOMContentLoaded',()=>{
   applyTranslations();
   initParticles();
+  renderLandingLoads();
 });
 </script>
 </body>
