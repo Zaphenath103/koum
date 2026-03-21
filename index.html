@@ -89,6 +89,7 @@ button,input,select,textarea{font-family:var(--fu)}
 @keyframes blink{0%,100%{opacity:1}49%{opacity:1}50%{opacity:0}}
 @keyframes flow{0%{stroke-dashoffset:120}100%{stroke-dashoffset:0}}
 @keyframes glow-pulse{0%,100%{box-shadow:0 0 8px rgba(0,191,255,.3)}50%{box-shadow:0 0 20px rgba(0,191,255,.7)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .au{animation:up .55s ease both}
 .au1{animation-delay:.06s}.au2{animation-delay:.12s}.au3{animation-delay:.18s}.au4{animation-delay:.24s}
 
@@ -760,13 +761,15 @@ select.fi option{background:#1A1210;color:#F7F2EA}
   .mc-map-bg { height: 180px !important; }
 
   /* Modals — bottom sheet */
-  .m-ov { align-items: flex-end !important; }
+  .m-ov { align-items: flex-end !important; padding: 0 !important; }
   .m-box {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     border-radius: 16px 16px 0 0 !important;
     position: relative !important;
+    max-height: 85svh !important;
+    animation: slideUp .25s ease !important;
   }
 
   /* Border strip — horizontal scroll */
