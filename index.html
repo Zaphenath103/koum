@@ -108,6 +108,9 @@ button,input,select,textarea{font-family:var(--fu)}
 .rpill{padding:.52rem 1.12rem;border-radius:50px;border:1px solid rgba(212,135,74,.28);background:transparent;color:rgba(247,242,234,.55);font-size:.73rem;font-weight:500;cursor:pointer;transition:var(--t)}
 .rpill:hover,.rpill.on{background:rgba(212,135,74,.1);border-color:#D4874A;color:#F7F2EA}
 .h-sub{font-size:.8rem;color:rgba(247,242,234,.38);max-width:360px;line-height:1.72;margin:0 auto 2rem}
+.particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.particle{position:absolute;border-radius:50%;background:#B87333;opacity:0;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(100vh) translateX(0);opacity:0}5%{opacity:.15}90%{opacity:.15}100%{transform:translateY(-80px) translateX(40px);opacity:0}}
 .hero-headline{margin-bottom:1.2rem}
 .h-line{font-family:var(--fd);font-size:clamp(2rem,6vw,4rem);font-weight:300;line-height:1.15;color:#F7F2EA;opacity:0;transform:translateY(18px);animation:heroLine .7s ease forwards}
 .h-line-2{color:#D4874A}
@@ -820,6 +823,7 @@ select.fi option{background:#1A1210;color:#F7F2EA}
 ════════════════════════════════════════ -->
 <div id="landing" class="scr on" style="scroll-behavior:smooth">
   <section class="hero" id="sec-hero">
+    <div class="particles" id="particles"></div>
     <div class="h-glow"></div>
     <div class="h-grid"></div>
 
@@ -1568,7 +1572,7 @@ const t=k=>T[S.lang]?.[k]??T.en[k]??'';
 
 // ───────────────────── SCREENS ───────────────────────────────────
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')}
-function goLand(){show('landing')}
+function goLand(){show('landing');initParticles()}
 function goOnboard(){show('onboarding')}
 function goApp(){show('app');initApp()}
 function goMC(){show('mc');renderMC()}
@@ -2690,8 +2694,28 @@ fetchLoads();
   }
 })();
 
+function initParticles(){
+  const c=document.getElementById('particles');
+  if(!c||c.children.length)return;
+  const cfg=[
+    {w:2,h:2,l:8,d:22,del:0},{w:3,h:3,l:15,d:28,del:2},{w:2,h:2,l:25,d:35,del:5},
+    {w:4,h:4,l:40,d:18,del:1},{w:2,h:2,l:55,d:30,del:8},{w:3,h:3,l:65,d:25,del:3},
+    {w:2,h:2,l:75,d:40,del:6},{w:4,h:4,l:85,d:20,del:4},{w:2,h:2,l:92,d:32,del:9},
+    {w:3,h:3,l:48,d:27,del:7},{w:2,h:2,l:32,d:38,del:2},{w:3,h:3,l:70,d:22,del:5},
+    {w:2,h:2,l:18,d:45,del:3},{w:4,h:4,l:60,d:19,del:8},{w:2,h:2,l:80,d:33,del:1},
+    {w:3,h:3,l:5,d:29,del:6},{w:2,h:2,l:45,d:36,del:4},{w:3,h:3,l:90,d:24,del:7},
+    {w:2,h:2,l:35,d:41,del:0},{w:4,h:4,l:20,d:26,del:9},
+  ];
+  cfg.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='particle';
+    el.style.cssText=`width:${p.w}px;height:${p.h}px;left:${p.l}%;animation-duration:${p.d}s;animation-delay:-${p.del}s;`;
+    c.appendChild(el);
+  });
+}
 document.addEventListener('DOMContentLoaded',()=>{
   applyTranslations();
+  initParticles();
 });
 </script>
 </body>
