@@ -2002,6 +2002,10 @@ function initApp(){
   updateCtaAndChip();
   renderNotifs();
   renderCmdStrip();
+  const savedToken=localStorage.getItem('tg_token');
+  const savedChat=localStorage.getItem('tg_chatid');
+  if(savedToken)window.TELEGRAM_BOT_TOKEN=savedToken;
+  if(savedChat)window.TELEGRAM_CHAT_ID=savedChat;
 }
 function updateCtaAndChip(){
   const L=T[S.lang]||T.en;
@@ -2671,7 +2675,27 @@ function checkRate(){
     }
   } else { sig.style.display='none'; }
 }
-function postLoad(){toast('✓ Posted! FraudAgent: PASS. MatchAgent alerting top 3 carriers.','s')}
+function postLoad(){
+  const originCity=(document.querySelector('#pg-post-load [placeholder="Origin city"]')||{}).value||'Unknown';
+  const destCity=(document.querySelector('#pg-post-load [placeholder="Destination city"]')||{}).value||'Unknown';
+  const cargo=(document.querySelector('#pg-post-load [placeholder*="Cargo"]')||{}).value||'General';
+  const weight=(document.querySelector('#pg-post-load [placeholder*="kg"]')||{}).value||'0';
+  const rate=(document.querySelector('#pg-post-load [placeholder*="rate"]')||document.querySelector('#pg-post-load [placeholder*="USD"]')||{}).value||'0';
+  const loadType='General';
+  toast('✓ Posted! FraudAgent: PASS. MatchAgent alerting top 3 carriers.','s');
+  sendTelegram(
+    `<b>📦 New Load Posted</b>\n`+
+    `━━━━━━━━━━━━━━━━━━━━\n`+
+    `Route: ${originCity} → ${destCity}\n`+
+    `Cargo: ${cargo}\n`+
+    `Weight: ${weight}kg\n`+
+    `Rate: $${rate}\n`+
+    `Type: ${loadType}\n`+
+    `<b>FraudAgent: Scanning... ✅</b>\n`+
+    `━━━━━━━━━━━━━━━━━━━━\n`+
+    `<i>koum.africa</i>`
+  );
+}
 function postLoadM(){closeM('post-m');toast('✓ Load live! FraudAgent: PASS.','s')}
 function selPlan(name){closeM('upgrade-m');toast(`Upgrading to ${name}. DPO payment page loading...`,'s')}
 
@@ -2815,6 +2839,12 @@ function renderMCFull(){
               <div style="background:rgba(0,191,255,.04);border:1px solid rgba(0,191,255,.08);border-radius:6px;padding:.5rem;grid-column:span 2"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(0,191,255,.4);margin-bottom:.22rem">Last Action</div><div style="font-family:'Courier New',monospace;font-size:.64rem;color:rgba(0,191,255,.55)">FRAUD_AGENT → 2 loads cleared · FraudAgent scan complete</div></div>
             </div>
             <button onclick="sendBriefing()" style="margin-top:.5rem;padding:.3rem .75rem;border-radius:6px;border:1px solid rgba(0,191,255,.3);background:rgba(0,191,255,.08);color:#00bfff;font-size:.62rem;font-weight:700;cursor:pointer;width:100%">SEND BRIEFING</button>
+            <div style="margin-top:.65rem;padding:.6rem .7rem;background:rgba(0,191,255,.05);border:1px solid rgba(0,191,255,.1);border-radius:8px">
+              <div style="font-family:var(--fi);font-size:.6rem;color:rgba(0,191,255,.5);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.35rem">Telegram Config</div>
+              <input id="tg-token" type="password" placeholder="Bot token (set once)" style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(0,191,255,.15);border-radius:6px;padding:.4rem .6rem;font-family:var(--fi);font-size:.65rem;color:#fff;margin-bottom:.35rem;box-sizing:border-box">
+              <input id="tg-chatid" type="text" placeholder="Chat ID" style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(0,191,255,.15);border-radius:6px;padding:.4rem .6rem;font-family:var(--fi);font-size:.65rem;color:#fff;margin-bottom:.35rem;box-sizing:border-box">
+              <button onclick="saveTgConfig()" style="width:100%;background:rgba(0,191,255,.12);border:1px solid rgba(0,191,255,.25);border-radius:6px;padding:.38rem;font-family:var(--fi);font-size:.65rem;color:#00bfff;cursor:pointer">Save &amp; Test Connection</button>
+            </div>
           </div>
         </div>
 
@@ -2886,21 +2916,71 @@ function renderMCFull(){
 function openM(id){$(id).style.display='flex'}
 function closeM(id){$(id).style.display='none'}
 
+// ─── TELEGRAM ────────────────────────────────────────────────────
+async function sendTelegram(msg){
+  const token=window.TELEGRAM_BOT_TOKEN||'YOUR_BOT_TOKEN_HERE';
+  const chatId=window.TELEGRAM_CHAT_ID||'YOUR_CHAT_ID_HERE';
+  if(!token||token==='YOUR_BOT_TOKEN_HERE'){
+    toast('Telegram not configured yet','w');
+    return false;
+  }
+  try{
+    const r=await fetch(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      {method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'})
+    });
+    const d=await r.json();
+    return d.ok;
+  }catch(e){
+    console.error('Telegram error:',e);
+    return false;
+  }
+}
+
+function saveTgConfig(){
+  const token=document.getElementById('tg-token')?.value?.trim();
+  const chatId=document.getElementById('tg-chatid')?.value?.trim();
+  if(!token||!chatId){toast('Enter both token and chat ID','w');return;}
+  window.TELEGRAM_BOT_TOKEN=token;
+  window.TELEGRAM_CHAT_ID=chatId;
+  localStorage.setItem('tg_token',token);
+  localStorage.setItem('tg_chatid',chatId);
+  toast('Testing connection...','i');
+  sendTelegram('✅ KoumEnvoy connected!\nZaphenathEnvoy is online.\nkoum.africa').then(ok=>{
+    if(ok)toast('Telegram connected ✅','s');
+    else toast('Check token and chat ID','e');
+  });
+}
+
 // ─── SEND BRIEFING ───────────────────────────────────────────────
-function sendBriefing(){
-  const existing=document.getElementById('briefing-modal');
-  if(existing){existing.style.display='flex';return;}
-  const m=document.createElement('div');
-  m.id='briefing-modal';
-  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
-  m.innerHTML=`<div style="background:#0a1628;border:1px solid rgba(0,191,255,.2);border-radius:16px;padding:2rem;max-width:380px;width:90%;text-align:center">
-    <div style="font-family:'Courier New',monospace;color:#00bfff;font-size:.72rem;letter-spacing:.18em;margin-bottom:.8rem">ZAPHENATH ENVOY</div>
-    <div style="color:#e8e6e3;font-size:.9rem;font-weight:600;margin-bottom:.4rem">Morning briefing dispatched to Telegram.</div>
-    <div style="color:rgba(174,198,255,.5);font-size:.75rem;margin-bottom:1.4rem">Next: 06:00 EAT tomorrow.</div>
-    <button onclick="document.getElementById('briefing-modal').style.display='none'" style="padding:.6rem 1.6rem;border-radius:8px;border:none;background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;font-weight:700;font-size:.78rem;cursor:pointer">ACKNOWLEDGED</button>
-  </div>`;
-  document.body.appendChild(m);
-  m.onclick=function(e){if(e.target===m)m.style.display='none';};
+async function sendBriefing(){
+  const now=new Date();
+  const time=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Africa/Kigali'});
+  const date=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:'Africa/Kigali'});
+  const msg=
+    '<b>☀️ ZaphenathEnvoy Briefing</b>\n'+
+    '━━━━━━━━━━━━━━━━━━━━\n'+
+    `🗓 ${date} · ${time} EAT\n\n`+
+    `<b>Platform Status</b>\n`+
+    `📦 Active loads: ${LOADS.filter(l=>l.status==='active').length}\n`+
+    `🚛 In transit: ${LOADS.filter(l=>l.status==='transit').length}\n`+
+    `💬 Open bids: 11\n`+
+    `🛡 FraudAgent: All clear ✅\n\n`+
+    `<b>Launch Countdown</b>\n`+
+    `🚀 April 1, 2026 · `+
+    `${Math.ceil((new Date('2026-04-01')-now)/864e5)} days remaining\n\n`+
+    `<b>Today Priority</b>\n`+
+    `→ Deploy remaining agents\n`+
+    `→ Connect koum.africa DNS\n`+
+    `→ Partner demo preparation\n\n`+
+    `━━━━━━━━━━━━━━━━━━━━\n`+
+    `<i>Your load shall be borne.</i>\n`+
+    `<i>Isaiah 46:4 · koum.africa</i>`;
+  const sent=await sendTelegram(msg);
+  if(sent){toast('Briefing sent to Telegram ✅','s');}
+  else{toast('Add Telegram token to go live','w');}
 }
 
 // ─── TOAST ───────────────────────────────────────────────────────
