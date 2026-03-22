@@ -1291,6 +1291,15 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
             <option>Nairobi → Bujumbura</option><option>Kampala → Juba</option>
             <option>Multiple corridors</option>
           </select></div>
+        <div style="background:rgba(0,27,68,.05);border:1px solid var(--bdr);border-radius:10px;padding:.75rem .9rem;margin-bottom:.85rem">
+          <div style="display:flex;gap:.45rem;align-items:flex-start">
+            <span style="font-size:1rem;flex-shrink:0">🔒</span>
+            <div>
+              <div style="font-family:var(--fi);font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.22rem">Your privacy is protected.</div>
+              <div style="font-family:var(--fi);font-size:.66rem;color:var(--muted);line-height:1.65">Contact details are only shared with operators you confirm a booking with. Your routes are never visible to competitors on the platform.</div>
+            </div>
+          </div>
+        </div>
         <div class="ob-plan-box">
           <div class="ob-plan-tier" id="ob-pt">Recommended Plan</div>
           <div class="ob-plan-name" id="ob-pn">Carrier — $29/mo</div>
@@ -2422,6 +2431,14 @@ function pgPlans(){
           <button class="btn-sm ${p.active?'gho':'pri'}" style="width:100%;padding:.62rem;font-size:.7rem" onclick="${p.active?`toast('You are on the Arise plan.','i')`:`selPlan('${p.tier}')`}">${p.active?'Current Plan':`Upgrade to ${p.tier}`}</button>
         </div>`).join('')}
     </div>
+    <div style="background:var(--card);border-radius:12px;padding:1rem;box-shadow:var(--shadow-sm);margin-top:.75rem">
+      <div style="font-family:var(--fi);font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem">🔒 Privacy Settings</div>
+      <div style="display:flex;flex-direction:column;gap:.55rem">
+        <label style="display:flex;align-items:center;justify-content:space-between;font-family:var(--fi);font-size:.72rem;color:var(--muted);cursor:pointer"><span>Hide my company name from unmatched operators</span><input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--navy)"></label>
+        <label style="display:flex;align-items:center;justify-content:space-between;font-family:var(--fi);font-size:.72rem;color:var(--muted);cursor:pointer"><span>Share contact only after booking confirmed</span><input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--navy)"></label>
+        <label style="display:flex;align-items:center;justify-content:space-between;font-family:var(--fi);font-size:.72rem;color:var(--muted);cursor:pointer"><span>Allow BackhaulAgent to share my route history</span><input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--navy)"></label>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -2535,7 +2552,7 @@ function rDash(){
   const f=$('act-feed');
   if(f)f.innerHTML=acts.map(a=>`<div style="display:flex;align-items:flex-start;gap:.55rem;padding:.42rem 0;border-bottom:1px solid var(--bdr)"><span style="font-size:.85rem;flex-shrink:0">${a.ic}</span><div style="flex:1;min-width:0"><div style="font-family:var(--fi);font-size:.7rem;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.t}</div><div style="font-family:var(--fi);font-size:.6rem;color:var(--subtle);margin-top:.06rem">${a.tm}</div></div></div>`).join('');
   const dl=$('dash-loads');
-  if(dl)dl.innerHTML=S.loads.slice(0,3).map(l=>lcH(l,true)).join('');
+  if(dl)dl.innerHTML=applyPrivacy(S.loads.slice(0,3),S.role).map(l=>lcH(l,true)).join('');
   const bl=$('backhaul-loads');
   if(bl)bl.innerHTML=S.loads.slice(0,2).map(l=>`<div class="lcard"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.45rem"><div><div class="lr"><span class="lrc">${F[l.occ]||''} ${l.oc}</span><span class="lra">→</span><span class="lrc">${F[l.dcc]||''} ${l.dc}</span><span class="badge b-ftl">${l.type}</span></div><div class="lm"><span class="lmi">📦 ${l.cargo}</span><span class="lmi">⚖️ ${(l.kg/1e3).toFixed(1)}MT</span></div></div><div style="text-align:right"><div class="lrate">$${l.rate.toLocaleString()}</div><button class="btn-sm em" style="font-size:.68rem;margin-top:.35rem" onclick="toast('BackhaulAgent booking this return load...','s')">Book Return</button></div></div></div>`).join('');
 }
@@ -2552,8 +2569,31 @@ function rBoard(){
   if(sort==='rl')ls.sort((a,b)=>a.rate-b.rate);
   const ct=$('lb-ct');if(ct)ct.textContent=`${ls.length} load${ls.length!==1?'s':''}`;
   const el=$('lb-list');
-  if(el)el.innerHTML=ls.map(l=>lcH(l,false)).join('')||`<div style="text-align:center;padding:3rem;color:var(--muted);font-family:var(--fi)"><div style="font-size:2rem;margin-bottom:.5rem">🚫</div>No loads match filters</div>`;
+  if(el)el.innerHTML=applyPrivacy(ls,S.role).map(l=>lcH(l,false)).join('')||`<div style="text-align:center;padding:3rem;color:var(--muted);font-family:var(--fi)"><div style="font-size:2rem;margin-bottom:.5rem">🚫</div>No loads match filters</div>`;
 }
+function applyPrivacy(loads,role){
+  return loads.map(l=>{
+    const safe={...l};
+    if(role==='carrier'){
+      safe.shipper_name='[Verified Shipper]';
+      safe.shipper_phone=null;
+      safe.shipper_email=null;
+      safe.shipper_company=l.bids>0?'[Contact after booking]':'[Post bid to connect]';
+    }
+    if(role==='shipper'){
+      safe.carrier_phone=null;
+      safe.carrier_personal=null;
+    }
+    if(role==='broker'){
+      if(l.broker_id&&l.broker_id!==S.userId){
+        safe.shipper_name='[Protected]';
+        safe.shipper_contact=null;
+      }
+    }
+    return safe;
+  });
+}
+
 function lcH(l,mini){
   const days=Math.ceil((new Date(l.pickup)-Date.now())/864e5);
   const urg=days<=2;
@@ -2583,7 +2623,12 @@ function lcH(l,mini){
           <span class="lmi" style="color:${days<=1?'var(--err)':days<=3?'#c65900':'var(--subtle)'}">📅 ${days<=0?'Today':days===1?'Tomorrow':days+'d'}</span>
           <span style="font-family:var(--fi);font-size:.58rem;padding:2px 7px;border-radius:50px;border:1px solid ${tc[l.terms]||'var(--bdr)'};color:${tc[l.terms]||'var(--muted)'}">${tl[l.terms]||l.terms}</span>
         </div>
-        ${sel?`<div class="ldesc">${l.desc}</div>`:''}
+        ${sel?`<div class="ldesc">${l.desc}</div>
+        <div style="display:flex;align-items:center;gap:.22rem;margin-top:.28rem">
+          <span style="font-size:.62rem">🔒</span>
+          <span style="font-family:var(--fi);font-size:.58rem;color:var(--subtle)">${S.role==='carrier'?'Contact shared after booking confirmed':S.role==='shipper'?'Carrier details shared after bid accepted':'Details protected by Koum Privacy'}</span>
+        </div>
+        ${S.role==='shipper'&&l.carrier_phone?`<div class="contact-row">📞 ${l.carrier_phone}</div>`:S.role==='carrier'&&l.shipper_phone?`<div class="contact-row">📞 ${l.shipper_phone}</div>`:`<div style="font-family:var(--fi);font-size:.65rem;color:var(--subtle);margin-top:.18rem">🔒 Contact unlocked after booking</div>`}`:''}
       </div>
       <div class="lc-rate" style="text-align:right;min-width:100px">
         <div class="lrate">$${l.rate.toLocaleString()}</div>
