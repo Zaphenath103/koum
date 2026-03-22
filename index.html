@@ -912,6 +912,528 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
   .nav-grp, .sb-ue, .lf-copy { font-size: .65rem; }
   .kpi-label { font-size: .6rem; }
 }
+
+/* ═══════════════════════════════════
+   KOUM RESPONSIVE SYSTEM — ALL SIZES
+   Phone 360px → Projector 2560px+
+═══════════════════════════════════ */
+
+/* BASE RESET */
+*,*::before,*::after{
+  box-sizing:border-box;
+}
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+img,svg,video,canvas{
+  max-width:100%;
+  height:auto;
+}
+
+/* APP SHELL */
+#app{
+  width:100vw;
+  max-width:100vw;
+  overflow:hidden;
+}
+.app-shell,.shell{
+  display:flex;
+  width:100%;
+  max-width:100%;
+  min-height:100svh;
+  overflow:hidden;
+}
+.main{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+}
+.canvas,.page-canvas,.pg{
+  width:100%;
+  max-width:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding:clamp(.75rem,2vw,1.5rem);
+  box-sizing:border-box;
+}
+
+/* TOPBAR */
+.topbar,.tb{
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  gap:clamp(.25rem,.8vw,.65rem);
+  padding:0 clamp(.7rem,2vw,1.4rem);
+  flex-shrink:0;
+  min-height:52px;
+}
+.tb-title,.topbar-title{
+  font-size:clamp(.7rem,1.8vw,1.1rem)!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  min-width:0;
+}
+.tb-ctrl{
+  display:flex;
+  align-items:center;
+  gap:clamp(.2rem,.6vw,.5rem);
+  flex-shrink:0;
+}
+
+/* SIDEBAR */
+.sidebar,.sb{
+  flex-shrink:0;
+  width:clamp(200px,18vw,240px);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+/* KPI GRID */
+.kpi-row{
+  display:grid!important;
+  grid-template-columns:
+    repeat(auto-fit,minmax(130px,1fr))!important;
+  gap:clamp(.4rem,1vw,.65rem)!important;
+  width:100%!important;
+}
+.kpi,.kpi-card{
+  min-width:0;
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* LOAD CARDS */
+.lcard{
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+
+/* MAP */
+.map-box{
+  width:100%!important;
+  height:clamp(180px,30vh,400px)!important;
+  max-width:100%!important;
+}
+
+/* MODALS */
+.m-ov{
+  position:fixed!important;
+  inset:0!important;
+  z-index:1000!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1rem;
+  overflow-y:auto;
+}
+.m-box{
+  width:100%!important;
+  max-width:min(520px,calc(100vw - 2rem))!important;
+  max-height:90svh!important;
+  overflow-y:auto!important;
+  box-sizing:border-box!important;
+  position:relative;
+}
+
+/* LANDING WORDMARK */
+.wm{
+  font-size:clamp(2.5rem,9vw,9.5rem)!important;
+  line-height:1.05!important;
+  word-break:break-word!important;
+}
+
+/* LANDING SECTIONS */
+.lf-grid,
+.land-inner,
+.sec-inner{
+  width:100%!important;
+  max-width:min(980px,94vw)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  box-sizing:border-box!important;
+}
+
+/* PRICING GRID */
+.price-grid{
+  display:grid!important;
+  grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr))!important;
+  gap:clamp(.6rem,1.5vw,.9rem)!important;
+  width:100%!important;
+}
+
+/* MISSION CONTROL */
+.mc-canvas{
+  display:grid!important;
+  grid-template-columns:
+    repeat(auto-fit,minmax(280px,1fr))!important;
+  gap:.7rem!important;
+  width:100%!important;
+}
+.mc-kpi-row{
+  display:grid!important;
+  grid-template-columns:
+    repeat(auto-fit,minmax(100px,1fr))!important;
+  gap:.5rem!important;
+  width:100%!important;
+}
+
+/* FLEET GRID */
+#fleet-grid{
+  display:grid!important;
+  grid-template-columns:
+    repeat(auto-fill,minmax(175px,1fr))!important;
+  gap:.5rem!important;
+  width:100%!important;
+}
+
+/* COMMAND STRIP */
+#cmd-strip{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:clamp(.5rem,1.5vw,.85rem)!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+
+/* ─── PHONE 768px ─── */
+@media(max-width:768px){
+
+  /* Sidebar becomes overlay */
+  .sidebar,.sb{
+    position:fixed!important;
+    left:0!important;top:0!important;
+    height:100%!important;
+    width:clamp(240px,75vw,290px)!important;
+    z-index:200!important;
+    transform:translateX(-100%)!important;
+    transition:transform .25s ease!important;
+    overflow-y:auto!important;
+  }
+  .sidebar.open,.sb.open{
+    transform:translateX(0)!important;
+  }
+
+  /* Show hamburger */
+  #ham{display:flex!important}
+
+  /* Hide desktop-only elements */
+  #tb-cta,
+  .tb-post-btn,
+  .topbar-post{
+    display:none!important;
+  }
+
+  /* Show FAB */
+  #fab{display:flex!important}
+
+  /* KPIs 2 columns */
+  .kpi-row{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  /* Stack all grids */
+  .lci,
+  .load-card-inner,
+  .bid-card-inner{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Dashboard 2-col → 1-col */
+  [style*="grid-template-columns:1fr 1fr"],
+  .dash-grid,.dash-two-col{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Mission Control single col */
+  .mc-canvas{
+    grid-template-columns:1fr!important;
+  }
+  .mc-card.span2,
+  .mc-card.span3,
+  [class*="span2"],
+  [class*="span3"]{
+    grid-column:span 1!important;
+  }
+
+  /* Pricing single col */
+  .price-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Map smaller */
+  .map-box{
+    height:220px!important;
+  }
+
+  /* Modal slides up from bottom */
+  .m-ov{
+    align-items:flex-end!important;
+    padding:0!important;
+  }
+  .m-box{
+    max-width:100%!important;
+    border-radius:16px 16px 0 0!important;
+    max-height:88svh!important;
+    animation:slideUp .28s ease!important;
+  }
+  @keyframes slideUp{
+    from{transform:translateY(100%)}
+    to{transform:translateY(0)}
+  }
+
+  /* Inputs no zoom on iOS */
+  input,select,textarea,
+  .fi,.fi-app{
+    font-size:16px!important;
+  }
+
+  /* Command strip stacks */
+  #cmd-strip{
+    flex-direction:column!important;
+    align-items:flex-start!important;
+  }
+
+  /* Landing nav collapses */
+  .land-nav-links{
+    display:none!important;
+  }
+  .land-nav{
+    justify-content:space-between!important;
+  }
+
+  /* Landing hero */
+  .wm{
+    font-size:clamp(2.5rem,12vw,5rem)
+      !important;
+  }
+  .hero-headline .h-line{
+    font-size:clamp(1.6rem,7vw,2.8rem)
+      !important;
+  }
+
+  /* Stats 2 cols */
+  .hero-stats,.land-stats{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  /* Role cards stack */
+  .role-grid,
+  #for-roles .reveal{
+    min-width:calc(50% - .375rem)!important;
+  }
+
+  /* How it works stack */
+  #how-it-works [style*="grid"]{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Footer stacks */
+  .footer-grid,.lf-grid-footer{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Notification panel full width */
+  #notif-panel{
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  /* Academy */
+  .cert-track,.course-row{
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  /* Border strip scrolls */
+  #border-strip{
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    flex-wrap:nowrap!important;
+  }
+
+  /* Fleet grid 2 cols */
+  #fleet-grid{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  /* Topbar compact */
+  .topbar,.tb{
+    gap:.3rem!important;
+    padding:0 .75rem!important;
+  }
+
+  /* Onboarding */
+  .ob-wrap{
+    padding:1.1rem!important;
+    margin:.5rem!important;
+  }
+
+  /* Buttons full width in modals */
+  .m-box .btn-row{
+    flex-direction:column!important;
+  }
+  .m-box .btn-row button{
+    width:100%!important;
+  }
+
+}
+
+/* ─── SMALL PHONE 480px ─── */
+@media(max-width:480px){
+
+  .kpi-row{
+    grid-template-columns:1fr 1fr!important;
+  }
+  .price-grid{
+    grid-template-columns:1fr!important;
+  }
+  .wm{
+    font-size:clamp(2rem,11vw,4rem)!important;
+  }
+  #for-roles .reveal{
+    min-width:100%!important;
+  }
+  .mc-kpi-row{
+    grid-template-columns:1fr 1fr!important;
+  }
+  #fleet-grid{
+    grid-template-columns:1fr!important;
+  }
+  .hero-stats,.land-stats{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+}
+
+/* ─── MINIMUM SUPPORT 360px ─── */
+@media(max-width:360px){
+
+  .wm{
+    font-size:2rem!important;
+  }
+  .kpi{
+    padding:.6rem .7rem!important;
+  }
+  .kpi-v,.kpi-val{
+    font-size:1.4rem!important;
+  }
+  .topbar,.tb{
+    padding:0 .5rem!important;
+    gap:.2rem!important;
+  }
+  #border-strip{
+    padding:.25rem .6rem!important;
+  }
+
+}
+
+/* ─── TABLET 1024px ─── */
+@media(min-width:769px) and
+      (max-width:1024px){
+
+  .sidebar,.sb{
+    width:200px!important;
+  }
+  .kpi-row{
+    grid-template-columns:
+      repeat(auto-fit,minmax(110px,1fr))
+      !important;
+  }
+  .price-grid{
+    grid-template-columns:
+      repeat(2,1fr)!important;
+  }
+
+}
+
+/* ─── LARGE DESKTOP 1920px ─── */
+@media(min-width:1920px){
+
+  .canvas,.page-canvas,.pg{
+    padding:2rem 3rem!important;
+  }
+  .sidebar,.sb{
+    width:260px!important;
+  }
+  .lf-grid,.land-inner{
+    max-width:1400px!important;
+  }
+  .kpi-row{
+    grid-template-columns:
+      repeat(5,1fr)!important;
+  }
+  #fleet-grid{
+    grid-template-columns:
+      repeat(auto-fill,minmax(210px,1fr))
+      !important;
+  }
+
+}
+
+/* ─── PROJECTOR 2560px+ ─── */
+@media(min-width:2560px){
+
+  html{font-size:20px!important;}
+  .sidebar,.sb{width:300px!important;}
+  .lf-grid,.land-inner{
+    max-width:1800px!important;
+  }
+  .wm{
+    font-size:clamp(6rem,8vw,12rem)
+      !important;
+  }
+
+}
+
+/* ─── AUTO DARK MODE ─── */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111111;
+    --surf:#1e1e1e;
+    --surf-lo:#1a1a1a;
+    --surf-hi:#2a2a2a;
+    --card:#1e1e1e;
+    --text:#f0eeec;
+    --muted:#a8a4a0;
+    --subtle:#6b6763;
+    --bdr:rgba(255,255,255,.08);
+  }
+}
+
+/* ─── REDUCED MOTION ─── */
+@media(prefers-reduced-motion:reduce){
+  *{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
+
+/* ─── PRINT ─── */
+@media print{
+  .sidebar,.sb,
+  .topbar,.tb,
+  #fab,#ham,
+  #border-strip,
+  .m-ov{
+    display:none!important;
+  }
+  .main{
+    width:100%!important;
+  }
+}
 </style>
 </head>
 <body>
