@@ -6,6 +6,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Koum — Africa's Freight Intelligence Layer</title>
 <meta name="description" content="Post loads. Find trucks. Track shipments. 38 African countries. Built in Kigali."/>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#D4874A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Koum">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -979,6 +985,7 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
       <button class="btn-p" onclick="goOnboard()">Get Started Free</button>
       <button class="btn-g" onclick="goApp()">View Dashboard →</button>
       <button onclick="openWA('250700000000','Hi Koum! I want to learn more about posting loads on koum.africa')" style="background:transparent;border:1px solid rgba(37,211,102,.25);color:rgba(37,211,102,.75);border-radius:10px;padding:.72rem 1.4rem;font-size:.77rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.45rem;transition:all .2s;white-space:nowrap" onmouseover="this.style.borderColor='rgba(37,211,102,.6)';this.style.color='#25D366'" onmouseout="this.style.borderColor='rgba(37,211,102,.25)';this.style.color='rgba(37,211,102,.75)'"><span style="font-size:1rem">📱</span>Chat on WhatsApp</button>
+      <button id="install-btn" onclick="installApp()" style="display:none;background:transparent;border:1px solid rgba(212,135,74,.25);color:rgba(212,135,74,.65);border-radius:10px;padding:.72rem 1.4rem;font-size:.77rem;font-weight:600;cursor:pointer;align-items:center;gap:.45rem;transition:all .2s" onmouseover="this.style.borderColor='rgba(212,135,74,.6)';this.style.color='#D4874A'" onmouseout="this.style.borderColor='rgba(212,135,74,.25)';this.style.color='rgba(212,135,74,.65)'"><span>📲</span> Install App</button>
     </div>
 
     <div class="h-stats au au4" id="land-stats">
@@ -3421,6 +3428,38 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 });
+
+// ─── PWA SERVICE WORKER ───────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg=>{console.log('Koum SW registered:',reg.scope);})
+      .catch(err=>{console.log('SW registration failed:',err);});
+  });
+}
+
+// ─── PWA INSTALL PROMPT ──────────────────────────────────────────
+let deferredPrompt=null;
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  const btn=document.getElementById('install-btn');
+  if(btn)btn.style.display='flex';
+});
+
+window.addEventListener('appinstalled',()=>{
+  deferredPrompt=null;
+  toast('Koum installed successfully! Find it on your home screen.','s');
+});
+
+async function installApp(){
+  if(!deferredPrompt){toast('Open in Chrome to install Koum','i');return;}
+  deferredPrompt.prompt();
+  const{outcome}=await deferredPrompt.userChoice;
+  if(outcome==='accepted'){toast('Installing Koum...','s');}
+  deferredPrompt=null;
+}
 </script>
 </body>
 </html>
