@@ -1836,7 +1836,12 @@ const t=k=>T[S.lang]?.[k]??T.en[k]??'';
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')}
 function goLand(){show('landing');initParticles()}
 function goOnboard(){show('onboarding')}
-function goApp(){show('app');initApp()}
+async function goApp(){
+  const ok=await authGate();
+  if(!ok)return;
+  show('app');
+  initApp();
+}
 function goMC(){show('mc');renderMC()}
 
 // ───────────────────── LANDING ───────────────────────────────────
@@ -1937,18 +1942,18 @@ function obStep(n){
   for(let i=1;i<=3;i++){const d=$('od'+i);if(d)d.classList.toggle('on',i<=n)}
 }
 async function gmailAuth(){
-  if(!SUPA){toast('Auth not configured','e');return;}
+  if(!SUPA){toast('Auth system loading...','w');return;}
   try{
     const{error}=await SUPA.auth.signInWithOAuth({
       provider:'google',
       options:{redirectTo:window.location.origin,queryParams:{access_type:'offline',prompt:'consent'}}
     });
-    if(error)toast(error.message,'e');
-  }catch(e){toast('Google sign-in failed','e');}
+    if(error)throw error;
+  }catch(e){toast('Google sign-in failed: '+e.message,'e');}
 }
 
 async function signUpWithEmail(name,email,pass,role,country){
-  if(!SUPA){goApp();initApp();return;}
+  if(!SUPA){toast('Auth system not ready','e');return;}
   try{
     const{data,error}=await SUPA.auth.signUp({
       email,password:pass,
@@ -1958,53 +1963,80 @@ async function signUpWithEmail(name,email,pass,role,country){
     toast('Account created! Check email to verify.','s');
     S.userName=name;
     S.userEmail=email;
-    goApp();
-    initApp();
+    goLand();
   }catch(e){toast('Signup failed. Try again.','e');}
 }
 
-function finishOb(){
-  const name=document.querySelector('#os2 input[type="text"]')?.value?.trim()||'User';
-  const email=document.querySelector('#os2 input[type="email"]')?.value?.trim()||'';
-  const pass=document.querySelector('#os2 input[type="password"]')?.value?.trim()||'';
-  const country=document.querySelector('#os2 select')?.value||'Rwanda';
-  if(email&&pass.length>=8){
-    signUpWithEmail(name,email,pass,S.role,country);
-  }else{
-    goApp();
-    toast('Welcome to Koum. Check your email for your guide.','s');
-  }
+async function finishOb(){
+  const nameEl=document.querySelector('#onboarding input[type=text]');
+  const emailEl=document.querySelector('#onboarding input[type=email]');
+  const passEl=document.querySelector('#onboarding input[type=password]');
+  const name=nameEl?.value?.trim();
+  const email=emailEl?.value?.trim();
+  const pass=passEl?.value?.trim();
+  if(!name||!email||!pass){toast('Please fill all fields','w');return;}
+  if(pass.length<6){toast('Password must be 6+ characters','w');return;}
+  if(!SUPA){toast('Auth system not ready','e');return;}
+  try{
+    toast('Creating your account...','i');
+    const{data,error}=await SUPA.auth.signUp({
+      email,password:pass,
+      options:{data:{full_name:name,role:S.role||'shipper',country:S.country||'RW',plan:'arise'}}
+    });
+    if(error)throw error;
+    if(data.user&&!data.user.email_confirmed_at){
+      toast('Check your email to verify your account then sign in','s');
+      goLand();
+    }else{
+      toast('Welcome to Koum, '+name.split(' ')[0]+'!','s');
+      goApp();
+    }
+  }catch(e){toast(e.message||'Signup failed. Try again.','e');}
 }
 
-async function checkSession(){
-  if(!SUPA)return false;
+async function authGate(){
+  if(!SUPA){goLand();return false;}
   try{
     const{data:{session}}=await SUPA.auth.getSession();
     if(session){
       const m=session.user.user_metadata;
       S.userName=m.full_name||m.name||'User';
       S.userEmail=session.user.email;
-      S.role=m.role||'shipper';
+      S.role=m.role||localStorage.getItem('koum-role')||'shipper';
       S.userId=session.user.id;
       updateSidebarUser();
       return true;
+    }else{
+      goLand();
+      return false;
     }
-  }catch(e){console.error('Session check:',e);}
-  return false;
+  }catch(e){
+    console.error('Auth gate:',e);
+    goLand();
+    return false;
+  }
 }
 
 function updateSidebarUser(){
   const av=document.getElementById('sb-av');
   const nm=document.getElementById('sb-name');
   const em=document.getElementById('sb-email');
-  if(av)av.textContent=S.userName[0].toUpperCase();
-  if(nm)nm.textContent=S.userName.split(' ')[0];
-  if(em)em.textContent=S.userEmail;
+  if(av&&S.userName)av.textContent=S.userName[0].toUpperCase();
+  if(nm&&S.userName)nm.textContent=S.userName.split(' ')[0];
+  if(em&&S.userEmail)em.textContent=S.userEmail;
+}
+
+async function signIn(email,pass){
+  if(!SUPA)return;
+  try{
+    const{error}=await SUPA.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+  }catch(e){toast(e.message||'Sign in failed','e');}
 }
 
 async function signOut(){
   if(SUPA)await SUPA.auth.signOut();
-  S.userName='';S.userEmail='';
+  S.userName='';S.userEmail='';S.userId='';
   localStorage.removeItem('koum-role');
   goLand();
   toast('Signed out successfully','i');
@@ -3397,35 +3429,42 @@ function initDashCountUps(){
   },200);
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded',async()=>{
   applyTranslations();
-  initParticles();
   renderLandingLoads();
   initCountUps();
   const revealObs=new IntersectionObserver(entries=>entries.forEach(e=>{
     if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
   }),{threshold:0.12});
   document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
-  (async()=>{
-    const hasSession=await checkSession();
-    if(hasSession){goApp();initApp();}
-    else{goLand();}
-  })();
-  if(SUPA){
-    SUPA.auth.onAuthStateChange(async(event,session)=>{
-      if(event==='SIGNED_IN'&&session){
-        const m=session.user.user_metadata;
-        S.userName=m.full_name||m.name||'User';
-        S.userEmail=session.user.email;
-        S.role=m.role||'shipper';
-        S.userId=session.user.id;
-        updateSidebarUser();
-        if(document.getElementById('app').classList.contains('on')===false){
-          goApp();initApp();
-        }
-      }
-      if(event==='SIGNED_OUT'){goLand();}
-    });
+
+  if(!SUPA){goLand();return;}
+
+  SUPA.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session){
+      const m=session.user.user_metadata;
+      S.userName=m.full_name||m.name||'User';
+      S.userEmail=session.user.email;
+      S.role=m.role||localStorage.getItem('koum-role')||'shipper';
+      S.userId=session.user.id;
+      updateSidebarUser();
+      goApp();
+      initApp();
+    }
+    if(event==='SIGNED_OUT'){
+      S.userName='';S.userEmail='';S.userId='';
+      goLand();
+    }
+  });
+
+  const hasSession=await authGate();
+  if(hasSession){
+    show('app');
+    initApp();
+    initParticles();
+  }else{
+    goLand();
+    initParticles();
   }
 });
 
