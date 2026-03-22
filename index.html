@@ -977,6 +977,7 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
     <div class="ctas au au4">
       <button class="btn-p" onclick="goOnboard()">Get Started Free</button>
       <button class="btn-g" onclick="goApp()">View Dashboard →</button>
+      <button onclick="openWA('250700000000','Hi Koum! I want to learn more about posting loads on koum.africa')" style="background:transparent;border:1px solid rgba(37,211,102,.25);color:rgba(37,211,102,.75);border-radius:10px;padding:.72rem 1.4rem;font-size:.77rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.45rem;transition:all .2s;white-space:nowrap" onmouseover="this.style.borderColor='rgba(37,211,102,.6)';this.style.color='#25D366'" onmouseout="this.style.borderColor='rgba(37,211,102,.25)';this.style.color='rgba(37,211,102,.75)'"><span style="font-size:1rem">📱</span>Chat on WhatsApp</button>
     </div>
 
     <div class="h-stats au au4">
@@ -1203,6 +1204,7 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
       </div>
       <div class="lf-bottom">
         <div class="lf-copy">© 2026 Zaphenath Ltd · Kigali, Rwanda · RDB Registered · koum.africa</div>
+        <div onclick="openWA('250700000000','Hi Koum team!')" style="display:inline-flex;align-items:center;gap:.45rem;cursor:pointer;font-family:var(--fi);font-size:.75rem;color:rgba(37,211,102,.75);transition:color .18s" onmouseover="this.style.color='#25D366'" onmouseout="this.style.color='rgba(37,211,102,.75)'"><span style="font-size:1.1rem">💬</span>WhatsApp us</div>
         <div class="lf-kick">קוּם — Arise.</div>
       </div>
     </div>
@@ -2506,7 +2508,7 @@ function lcH(l,mini){
       <div class="lc-rate" style="text-align:right;min-width:100px">
         <div class="lrate">$${l.rate.toLocaleString()}</div>
         <div class="lrate-s">USD · ${l.type}</div>
-        <div class="lc-actions">${sel&&!mini?`${addBtn}<button class="btn-sm gho" style="width:100%;font-size:.65rem" onclick="event.stopPropagation();toast('RouteAgent monitoring corridor.','i')">Watch Route</button>`:`<button class="btn-sm gho" style="font-size:.65rem">View</button>`}</div>
+        <div class="lc-actions">${sel&&!mini?`${addBtn}<button class="btn-sm gho" style="width:100%;font-size:.65rem" onclick="event.stopPropagation();toast('RouteAgent monitoring corridor.','i')">Watch Route</button><button class="btn-sm gho" onclick="event.stopPropagation();openWA('','Hi, I saw load ${l.oc}→${l.dc} on Koum. Cargo: ${l.cargo}. Rate: $${l.rate}. Ref: KM-${l.id}. I would like to discuss.')" style="width:100%;font-size:.65rem;display:flex;align-items:center;gap:.28rem"><span style="color:#25D366">💬</span>WhatsApp</button>`:`<button class="btn-sm gho" style="font-size:.65rem">View</button>`}</div>
       </div>
     </div>
   </div>`;
@@ -2519,7 +2521,19 @@ function openBid(e,id){
   $('bid-rate').placeholder=`Listed: $${l.rate.toLocaleString()}`;
   openM('bid-m');
 }
-function submitBid(){closeM('bid-m');toast('Bid submitted! MatchAgent notified the shipper.','s')}
+function submitBid(){
+  closeM('bid-m');
+  const bidRate=document.getElementById('bid-rate')?.value||'';
+  const selL=S.loads?.find(x=>x.id===S.selLoad)||LOADS.find(x=>x.id===S.selLoad)||{};
+  toast('Bid submitted! Shipper notified.','s');
+  openWA('',
+    `Bid submitted on Koum!\n`+
+    `Load: ${selL.oc||''}→${selL.dc||''}\n`+
+    `Your rate: $${bidRate}\n`+
+    `Ref: KM-${selL.id||'2026'}\n`+
+    `Track at: koum-afri.netlify.app`
+  );
+}
 function doTrack(){$('tk-result').style.display='block';rTL()}
 function rTL(){
   const el=$('tl-content');if(!el)return;
@@ -2915,6 +2929,14 @@ function renderMCFull(){
 // ─── MODALS ──────────────────────────────────────────────────────
 function openM(id){$(id).style.display='flex'}
 function closeM(id){$(id).style.display='none'}
+
+// ─── WHATSAPP ─────────────────────────────────────────────────────
+function openWA(phone,msg){
+  const clean=(phone||'').replace(/\D/g,'');
+  const num=clean||'250700000000';
+  const encoded=encodeURIComponent(msg||'Hi');
+  window.open(`https://wa.me/${num}?text=${encoded}`,'_blank');
+}
 
 // ─── TELEGRAM ────────────────────────────────────────────────────
 async function sendTelegram(msg){
