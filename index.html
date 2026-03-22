@@ -8,6 +8,7 @@
 <meta name="description" content="Post loads. Find trucks. Track shipments. 38 African countries. Built in Kigali."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 /* ═══════════════════════════════════════════════════════════════
    KOUM v2 — DESIGN SYSTEM
@@ -1332,6 +1333,7 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
           <div class="sb-ue" id="sb-email">company@email.com</div>
         </div>
       </div>
+      <div onclick="signOut()" style="font-size:.6rem;color:rgba(255,255,255,.25);cursor:pointer;margin-top:.4rem;text-align:center;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.5)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">Sign out</div>
     </div>
   </aside>
 
@@ -1500,6 +1502,11 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
 
 <script>
 'use strict';
+// ───────────────────── SUPABASE CLIENT ───────────────────────────
+const SUPA=window.supabase?.createClient(
+  'https://dzpfsoykjpuovmsoekax.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cGZzb3lranB1b3Ztc29la2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTQ2OTMsImV4cCI6MjA4OTE5MDY5M30.cRjYcl2XJTbFq2CozzQxLmMM82QH0OPV_QSqrLLMmXY'
+);
 // ───────────────────── DATA ──────────────────────────────────────
 const SB='https://dzpfsoykjpuovmsoekax.supabase.co';
 const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cGZzb3lranB1b3Ztc29la2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTQ2OTMsImV4cCI6MjA4OTE5MDY5M30.cRjYcl2XJTbFq2CozzQxLmMM82QH0OPV_QSqrLLMmXY';
@@ -1913,8 +1920,79 @@ function obStep(n){
   $('os'+n)?.classList.add('on');
   for(let i=1;i<=3;i++){const d=$('od'+i);if(d)d.classList.toggle('on',i<=n)}
 }
-function gmailAuth(){toast('Google OAuth via Supabase Auth.','i');setTimeout(()=>obStep(3),900)}
-function finishOb(){goApp();toast('Welcome to Koum. Check your email for your guide.','s')}
+async function gmailAuth(){
+  if(!SUPA){toast('Auth not configured','e');return;}
+  try{
+    const{error}=await SUPA.auth.signInWithOAuth({
+      provider:'google',
+      options:{redirectTo:window.location.origin,queryParams:{access_type:'offline',prompt:'consent'}}
+    });
+    if(error)toast(error.message,'e');
+  }catch(e){toast('Google sign-in failed','e');}
+}
+
+async function signUpWithEmail(name,email,pass,role,country){
+  if(!SUPA){goApp();initApp();return;}
+  try{
+    const{data,error}=await SUPA.auth.signUp({
+      email,password:pass,
+      options:{data:{full_name:name,role:role||S.role||'shipper',country:country||'RW'}}
+    });
+    if(error){toast(error.message,'e');return;}
+    toast('Account created! Check email to verify.','s');
+    S.userName=name;
+    S.userEmail=email;
+    goApp();
+    initApp();
+  }catch(e){toast('Signup failed. Try again.','e');}
+}
+
+function finishOb(){
+  const name=document.querySelector('#os2 input[type="text"]')?.value?.trim()||'User';
+  const email=document.querySelector('#os2 input[type="email"]')?.value?.trim()||'';
+  const pass=document.querySelector('#os2 input[type="password"]')?.value?.trim()||'';
+  const country=document.querySelector('#os2 select')?.value||'Rwanda';
+  if(email&&pass.length>=8){
+    signUpWithEmail(name,email,pass,S.role,country);
+  }else{
+    goApp();
+    toast('Welcome to Koum. Check your email for your guide.','s');
+  }
+}
+
+async function checkSession(){
+  if(!SUPA)return false;
+  try{
+    const{data:{session}}=await SUPA.auth.getSession();
+    if(session){
+      const m=session.user.user_metadata;
+      S.userName=m.full_name||m.name||'User';
+      S.userEmail=session.user.email;
+      S.role=m.role||'shipper';
+      S.userId=session.user.id;
+      updateSidebarUser();
+      return true;
+    }
+  }catch(e){console.error('Session check:',e);}
+  return false;
+}
+
+function updateSidebarUser(){
+  const av=document.getElementById('sb-av');
+  const nm=document.getElementById('sb-name');
+  const em=document.getElementById('sb-email');
+  if(av)av.textContent=S.userName[0].toUpperCase();
+  if(nm)nm.textContent=S.userName.split(' ')[0];
+  if(em)em.textContent=S.userEmail;
+}
+
+async function signOut(){
+  if(SUPA)await SUPA.auth.signOut();
+  S.userName='';S.userEmail='';
+  localStorage.removeItem('koum-role');
+  goLand();
+  toast('Signed out successfully','i');
+}
 
 // ───────────────────── APP ───────────────────────────────────────
 // Role-specific nav configs
@@ -3276,6 +3354,27 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
   }),{threshold:0.12});
   document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+  (async()=>{
+    const hasSession=await checkSession();
+    if(hasSession){goApp();initApp();}
+    else{goLand();}
+  })();
+  if(SUPA){
+    SUPA.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_IN'&&session){
+        const m=session.user.user_metadata;
+        S.userName=m.full_name||m.name||'User';
+        S.userEmail=session.user.email;
+        S.role=m.role||'shipper';
+        S.userId=session.user.id;
+        updateSidebarUser();
+        if(document.getElementById('app').classList.contains('on')===false){
+          goApp();initApp();
+        }
+      }
+      if(event==='SIGNED_OUT'){goLand();}
+    });
+  }
 });
 </script>
 </body>
