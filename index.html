@@ -983,7 +983,7 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
 
     <div class="ctas au au4">
       <button class="btn-p" onclick="goOnboard()">Get Started Free</button>
-      <button class="btn-g" onclick="goApp()">View Dashboard →</button>
+      <button class="btn-g" onclick="openM('signin-m')">Sign In →</button>
       <button onclick="openWA('250700000000','Hi Koum! I want to learn more about posting loads on koum.africa')" style="background:transparent;border:1px solid rgba(37,211,102,.25);color:rgba(37,211,102,.75);border-radius:10px;padding:.72rem 1.4rem;font-size:.77rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.45rem;transition:all .2s;white-space:nowrap" onmouseover="this.style.borderColor='rgba(37,211,102,.6)';this.style.color='#25D366'" onmouseout="this.style.borderColor='rgba(37,211,102,.25)';this.style.color='rgba(37,211,102,.75)'"><span style="font-size:1rem">📱</span>Chat on WhatsApp</button>
       <button id="install-btn" onclick="installApp()" style="display:none;background:transparent;border:1px solid rgba(212,135,74,.25);color:rgba(212,135,74,.65);border-radius:10px;padding:.72rem 1.4rem;font-size:.77rem;font-weight:600;cursor:pointer;align-items:center;gap:.45rem;transition:all .2s" onmouseover="this.style.borderColor='rgba(212,135,74,.6)';this.style.color='#D4874A'" onmouseout="this.style.borderColor='rgba(212,135,74,.25)';this.style.color='rgba(212,135,74,.65)'"><span>📲</span> Install App</button>
     </div>
@@ -1521,12 +1521,79 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
 // ───────────────────── SUPABASE CLIENT ───────────────────────────
 const SUPA=window.supabase?.createClient(
   'https://dzpfsoykjpuovmsoekax.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cGZzb3lranB1b3Ztc29la2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTQ2OTMsImV4cCI6MjA4OTE5MDY5M30.cRjYcl2XJTbFq2CozzQxLmMM82QH0OPV_QSqrLLMmXY'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cGZzb3lranB1b3Ztc29la2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTQ2OTMsImV4cCI6MjA4OTE5MDY5M30.cRjYcl2XJTbFq2CozzQxLmMM82QH0OPV_QSqrLLMmXY',
+  {
+    auth:{
+      autoRefreshToken:true,
+      persistSession:true,
+      detectSessionInUrl:true,
+      flowType:'pkce',
+      storage:window.localStorage,
+    }
+  }
 );
 // ───────────────────── DATA ──────────────────────────────────────
 const SB='https://dzpfsoykjpuovmsoekax.supabase.co';
 const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cGZzb3lranB1b3Ztc29la2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MTQ2OTMsImV4cCI6MjA4OTE5MDY5M30.cRjYcl2XJTbFq2CozzQxLmMM82QH0OPV_QSqrLLMmXY';
 const F={KE:'🇰🇪',RW:'🇷🇼',TZ:'🇹🇿',UG:'🇺🇬',BI:'🇧🇮',SS:'🇸🇸',ET:'🇪🇹',CD:'🇨🇩'};
+
+// ─── LIVE DATA ───────────────────────────────────────────────────
+async function fetchLiveLoads(){
+  if(!SUPA)return null;
+  try{
+    const{data,error}=await SUPA
+      .from('loads')
+      .select('*,bids(count)')
+      .eq('status','active')
+      .order('created_at',{ascending:false})
+      .limit(50);
+    if(error)throw error;
+    return data;
+  }catch(e){
+    console.error('Load fetch:',e);
+    return null;
+  }
+}
+
+async function loadBoardData(){
+  const live=await fetchLiveLoads();
+  if(live&&live.length>0){
+    S.loads=live.map(l=>({
+      id:l.id,
+      ref:l.ref,
+      oc:l.origin_city,
+      occ:l.origin_country||'KE',
+      dc:l.dest_city,
+      dcc:l.dest_country||'RW',
+      cargo:l.cargo_type,
+      kg:l.weight_kg,
+      type:l.load_type,
+      rate:l.rate_usd,
+      pickup:l.pickup_date,
+      terms:l.payment_terms||'Prepaid',
+      desc:l.description||'',
+      status:l.status,
+      bids:l.bids?.[0]?.count||0,
+      shipperId:l.shipper_id,
+    }));
+    toast('Load board updated','s');
+  }else{
+    S.loads=[...LOADS];
+  }
+  rBoard();
+}
+
+function renderLoadBoard(){rBoard();}
+
+function callFraudAgent(loadId,userId){
+  toast('FraudAgent scanning load...','i');
+  sendTelegram(`<b>🛡 FraudAgent Triggered</b>\nLoad: ${loadId}\nShipper: ${userId}`);
+}
+
+function callMatchAgent(bidId,loadId){
+  toast('MatchAgent scoring bid...','i');
+  sendTelegram(`<b>🤖 MatchAgent Triggered</b>\nBid: ${bidId}\nLoad: ${loadId}`);
+}
 
 const LOADS=[
   {id:'1',oc:'Mombasa',occ:'KE',dc:'Kigali',dcc:'RW',cargo:'Coffee Beans',kg:18000,type:'FTL',terms:'NET_30',rate:2400,pickup:'2026-03-22',bids:3,desc:'18MT green coffee. KEPHIS cert required. Reefer preferred.'},
@@ -1837,10 +1904,15 @@ function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remov
 function goLand(){show('landing');initParticles()}
 function goOnboard(){show('onboarding')}
 async function goApp(){
-  const ok=await authGate();
-  if(!ok)return;
-  show('app');
-  initApp();
+  if(!SUPA){goLand();return;}
+  const{data:{session}}=await SUPA.auth.getSession();
+  if(!session){goLand();return;}
+  const land=document.getElementById('landing');
+  const onboard=document.getElementById('onboarding');
+  const app=document.getElementById('app');
+  if(land)land.style.display='none';
+  if(onboard)onboard.style.display='none';
+  if(app)app.style.display='flex';
 }
 function goMC(){show('mc');renderMC()}
 
@@ -1942,11 +2014,14 @@ function obStep(n){
   for(let i=1;i<=3;i++){const d=$('od'+i);if(d)d.classList.toggle('on',i<=n)}
 }
 async function gmailAuth(){
-  if(!SUPA){toast('Auth system loading...','w');return;}
+  if(!SUPA){toast('Auth not ready. Refresh.','w');return;}
   try{
     const{error}=await SUPA.auth.signInWithOAuth({
       provider:'google',
-      options:{redirectTo:window.location.origin,queryParams:{access_type:'offline',prompt:'consent'}}
+      options:{
+        redirectTo:window.location.origin,
+        queryParams:{access_type:'offline',prompt:'consent'}
+      }
     });
     if(error)throw error;
   }catch(e){toast('Google sign-in failed: '+e.message,'e');}
@@ -1968,30 +2043,77 @@ async function signUpWithEmail(name,email,pass,role,country){
 }
 
 async function finishOb(){
-  const nameEl=document.querySelector('#onboarding input[type=text]');
-  const emailEl=document.querySelector('#onboarding input[type=email]');
-  const passEl=document.querySelector('#onboarding input[type=password]');
-  const name=nameEl?.value?.trim();
-  const email=emailEl?.value?.trim();
-  const pass=passEl?.value?.trim();
-  if(!name||!email||!pass){toast('Please fill all fields','w');return;}
-  if(pass.length<6){toast('Password must be 6+ characters','w');return;}
-  if(!SUPA){toast('Auth system not ready','e');return;}
+  const nameEl=document.querySelector('#onboarding input[type="text"]')||document.getElementById('ob-name');
+  const emailEl=document.querySelector('#onboarding input[type="email"]')||document.getElementById('ob-email');
+  const passEl=document.querySelector('#onboarding input[type="password"]')||document.getElementById('ob-pass');
+  const name=(nameEl?.value||'').trim();
+  const email=(emailEl?.value||'').trim();
+  const pass=(passEl?.value||'').trim();
+  if(!name){toast('Please enter your name','w');nameEl?.focus();return;}
+  if(!email||!email.includes('@')){toast('Please enter a valid email','w');emailEl?.focus();return;}
+  if(!pass||pass.length<6){toast('Password must be at least 6 characters','w');passEl?.focus();return;}
+  if(!SUPA){toast('System not ready. Refresh page.','e');return;}
+  const btn=document.getElementById('ob-submit-btn');
+  if(btn){btn.disabled=true;btn.textContent='Creating account...';}
   try{
-    toast('Creating your account...','i');
     const{data,error}=await SUPA.auth.signUp({
       email,password:pass,
-      options:{data:{full_name:name,role:S.role||'shipper',country:S.country||'RW',plan:'arise'}}
+      options:{
+        emailRedirectTo:window.location.origin,
+        data:{full_name:name,role:S.role||'shipper',country:S.country||'RW',plan:'arise'}
+      }
     });
     if(error)throw error;
-    if(data.user&&!data.user.email_confirmed_at){
-      toast('Check your email to verify your account then sign in','s');
-      goLand();
-    }else{
-      toast('Welcome to Koum, '+name.split(' ')[0]+'!','s');
-      goApp();
+    if(data.user&&data.user.identities&&data.user.identities.length===0){
+      toast('Email already registered. Please sign in.','w');
+      if(btn){btn.disabled=false;btn.textContent='Create Account';}
+      return;
     }
-  }catch(e){toast(e.message||'Signup failed. Try again.','e');}
+    if(data.session){
+      S.userName=name;S.userEmail=email;S.userId=data.user.id;S.role=S.role||'shipper';
+      updateSidebarUser();
+      toast('Welcome to Koum, '+name.split(' ')[0]+'! ✅','s');
+      goApp();
+      initApp();
+    }else{
+      showVerifyMessage(email);
+    }
+  }catch(e){
+    toast(e.message||'Signup failed. Try again.','e');
+    if(btn){btn.disabled=false;btn.textContent='Create Account';}
+  }
+}
+
+function showVerifyMessage(email){
+  const existing=document.getElementById('verify-screen');
+  if(existing)existing.remove();
+  const screen=document.createElement('div');
+  screen.id='verify-screen';
+  screen.style.cssText=`position:fixed;inset:0;background:#030303;display:flex;align-items:center;justify-content:center;z-index:999;padding:1.5rem;flex-direction:column;text-align:center;`;
+  screen.innerHTML=`
+    <div style="max-width:380px;width:100%">
+      <div style="font-size:3rem;margin-bottom:1rem">📧</div>
+      <div style="font-family:var(--fd);font-size:1.6rem;font-weight:300;color:#F7F2EA;margin-bottom:.6rem">Check your email</div>
+      <div style="font-family:var(--fi);font-size:.82rem;color:rgba(247,242,234,.45);line-height:1.7;margin-bottom:1.4rem">
+        We sent a verification link to<br>
+        <strong style="color:#D4874A">${email}</strong><br><br>
+        Click the link in that email to activate your Koum account.<br>
+        Check your spam folder if you do not see it.
+      </div>
+      <button onclick="resendVerify('${email}')" style="background:transparent;border:1px solid rgba(247,242,234,.15);color:rgba(247,242,234,.45);border-radius:10px;padding:.7rem 1.4rem;font-family:var(--fi);font-size:.75rem;cursor:pointer;margin-bottom:.75rem;width:100%;transition:all .18s" onmouseover="this.style.borderColor='rgba(247,242,234,.35)';this.style.color='#F7F2EA'" onmouseout="this.style.borderColor='rgba(247,242,234,.15)';this.style.color='rgba(247,242,234,.45)'">Resend verification email</button>
+      <button onclick="document.getElementById('verify-screen').remove();goLand()" style="background:transparent;border:none;color:rgba(247,242,234,.25);font-family:var(--fi);font-size:.72rem;cursor:pointer">Back to sign in</button>
+    </div>
+  `;
+  document.body.appendChild(screen);
+}
+
+async function resendVerify(email){
+  if(!SUPA)return;
+  try{
+    const{error}=await SUPA.auth.resend({type:'signup',email,options:{emailRedirectTo:window.location.origin}});
+    if(error)throw error;
+    toast('Verification email resent!','s');
+  }catch(e){toast('Could not resend: '+e.message,'e');}
 }
 
 async function authGate(){
@@ -2032,6 +2154,23 @@ async function signIn(email,pass){
     const{error}=await SUPA.auth.signInWithPassword({email,password:pass});
     if(error)throw error;
   }catch(e){toast(e.message||'Sign in failed','e');}
+}
+
+async function signInWithEmail(){
+  const email=document.getElementById('si-email')?.value?.trim();
+  const pass=document.getElementById('si-pass')?.value?.trim();
+  const btn=document.getElementById('si-btn');
+  if(!email||!pass){toast('Enter email and password','w');return;}
+  if(!SUPA){toast('System not ready','e');return;}
+  if(btn){btn.disabled=true;btn.textContent='Signing in...';}
+  try{
+    const{error}=await SUPA.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+    closeM('signin-m');
+  }catch(e){
+    toast(e.message==='Invalid login credentials'?'Wrong email or password':'Sign in failed: '+e.message,'e');
+    if(btn){btn.disabled=false;btn.textContent='Sign In';}
+  }
 }
 
 async function signOut(){
@@ -2122,7 +2261,7 @@ const NAV_CONFIG={
 const CHIP_CLS={shipper:'chip-shipper',carrier:'chip-carrier',broker:'chip-broker',dispatcher:'chip-dispatcher'};
 const CHIP_LABEL={shipper:'Shipper',carrier:'Carrier',broker:'Broker',dispatcher:'Dispatcher'};
 
-function initApp(){
+async function initApp(){
   applyTranslations();
   document.getElementById('app').setAttribute('data-role-active',S.role);
   renderNav();
@@ -2135,6 +2274,8 @@ function initApp(){
   if(savedToken)window.TELEGRAM_BOT_TOKEN=savedToken;
   if(savedChat)window.TELEGRAM_CHAT_ID=savedChat;
   initDashCountUps();
+  await loadBoardData();
+  subscribeToLoads();
 }
 function updateCtaAndChip(){
   const L=T[S.lang]||T.en;
@@ -2685,18 +2826,39 @@ function openBid(e,id){
   $('bid-rate').placeholder=`Listed: $${l.rate.toLocaleString()}`;
   openM('bid-m');
 }
-function submitBid(){
-  closeM('bid-m');
-  const bidRate=document.getElementById('bid-rate')?.value||'';
+async function submitRealBid(loadId,rate,note){
+  if(!SUPA||!S.userId){toast('Sign in to bid','w');return;}
+  try{
+    const{data,error}=await SUPA
+      .from('bids')
+      .insert({load_id:loadId,carrier_id:S.userId,rate_usd:rate,note:note||'',status:'pending'})
+      .select()
+      .single();
+    if(error)throw error;
+    toast('Bid submitted! MatchAgent scoring...','s');
+    callMatchAgent(data.id,loadId);
+    closeM('bid-m');
+    return data;
+  }catch(e){toast(e.message||'Bid failed','e');}
+}
+
+async function submitBid(){
+  const rate=parseInt(document.getElementById('bid-rate')?.value)||0;
+  const truck=document.querySelector('#bid-m input[placeholder*="KBA"]')?.value||
+    document.querySelector('#bid-m .fi[placeholder*="Volvo"]')?.value||'';
+  const note=document.querySelector('#bid-m textarea')?.value||'';
   const selL=S.loads?.find(x=>x.id===S.selLoad)||LOADS.find(x=>x.id===S.selLoad)||{};
-  toast('Bid submitted! Shipper notified.','s');
-  openWA('',
-    `Bid submitted on Koum!\n`+
-    `Load: ${selL.oc||''}→${selL.dc||''}\n`+
-    `Your rate: $${bidRate}\n`+
-    `Ref: KM-${selL.id||'2026'}\n`+
-    `Track at: koum-afri.netlify.app`
-  );
+  if(!rate){toast('Enter your rate','w');return;}
+  const result=await submitRealBid(S.selLoad,rate,note);
+  if(result){
+    openWA('',
+      `Bid submitted on Koum!\n`+
+      `Load: ${selL.oc||''}→${selL.dc||''}\n`+
+      `Your rate: $${rate}\n`+
+      `Ref: KM-${selL.id||'2026'}\n`+
+      `Track at: koum-afri.netlify.app`
+    );
+  }
 }
 function doTrack(){$('tk-result').style.display='block';rTL()}
 function rTL(){
@@ -2853,28 +3015,54 @@ function checkRate(){
     }
   } else { sig.style.display='none'; }
 }
-function postLoad(){
-  const originCity=(document.querySelector('#pg-post-load [placeholder="Origin city"]')||{}).value||'Unknown';
-  const destCity=(document.querySelector('#pg-post-load [placeholder="Destination city"]')||{}).value||'Unknown';
-  const cargo=(document.querySelector('#pg-post-load [placeholder*="Cargo"]')||{}).value||'General';
-  const weight=(document.querySelector('#pg-post-load [placeholder*="kg"]')||{}).value||'0';
-  const rate=(document.querySelector('#pg-post-load [placeholder*="rate"]')||document.querySelector('#pg-post-load [placeholder*="USD"]')||{}).value||'0';
-  const loadType='General';
-  toast('✓ Posted! FraudAgent: PASS. MatchAgent alerting top 3 carriers.','s');
-  sendTelegram(
-    `<b>📦 New Load Posted</b>\n`+
-    `━━━━━━━━━━━━━━━━━━━━\n`+
-    `Route: ${originCity} → ${destCity}\n`+
-    `Cargo: ${cargo}\n`+
-    `Weight: ${weight}kg\n`+
-    `Rate: $${rate}\n`+
-    `Type: ${loadType}\n`+
-    `<b>FraudAgent: Scanning... ✅</b>\n`+
-    `━━━━━━━━━━━━━━━━━━━━\n`+
-    `<i>koum.africa</i>`
-  );
+async function postLoad(loadData){
+  if(!SUPA||!S.userId){toast('Sign in to post loads','w');return;}
+  try{
+    const{data,error}=await SUPA
+      .from('loads')
+      .insert({
+        shipper_id:S.userId,
+        origin_city:loadData.origin,
+        origin_country:loadData.originCC||'KE',
+        dest_city:loadData.dest,
+        dest_country:loadData.destCC||'RW',
+        cargo_type:loadData.cargo,
+        weight_kg:loadData.weight,
+        load_type:loadData.type||'FTL',
+        rate_usd:loadData.rate,
+        pickup_date:loadData.pickup,
+        payment_terms:loadData.terms||'Prepaid',
+        description:loadData.desc||''
+      })
+      .select()
+      .single();
+    if(error)throw error;
+    toast('Load posted! FraudAgent scanning...','s');
+    sendTelegram(
+      `<b>📦 New Load Posted</b>\n━━━━━━━━━━━━━━━━━━━━\n`+
+      `Route: ${loadData.origin} → ${loadData.dest}\n`+
+      `Cargo: ${loadData.cargo}\nWeight: ${loadData.weight}kg\nRate: $${loadData.rate}\n`+
+      `<b>FraudAgent: Scanning... ✅</b>\n━━━━━━━━━━━━━━━━━━━━\n<i>koum.africa</i>`
+    );
+    callFraudAgent(data.id,S.userId);
+    closeM('post-m');
+    loadBoardData();
+    return data;
+  }catch(e){toast(e.message||'Failed to post load','e');}
 }
-function postLoadM(){closeM('post-m');toast('✓ Load live! FraudAgent: PASS.','s')}
+
+async function postLoadM(){
+  const box=document.getElementById('post-m');
+  const inputs=box?box.querySelectorAll('input'):[];
+  const sel=box?box.querySelector('select'):null;
+  const origin=inputs[0]?.value?.trim();
+  const dest=inputs[1]?.value?.trim();
+  const weight=parseInt(inputs[2]?.value)||0;
+  const rate=parseInt(inputs[3]?.value)||0;
+  const cargo=sel?.value||'General';
+  if(!origin||!dest){toast('Enter origin and destination','w');return;}
+  await postLoad({origin,dest,cargo,weight,rate,type:'FTL',terms:'Prepaid',desc:''});
+}
 function selPlan(name){closeM('upgrade-m');toast(`Upgrading to ${name}. DPO payment page loading...`,'s')}
 
 // ─── MISSION CONTROL ─────────────────────────────────────────────
@@ -3178,17 +3366,35 @@ function toast(msg,type=''){
   window._t=setTimeout(()=>el.classList.remove('on'),4200);
 }
 
-// ─── SUPABASE ────────────────────────────────────────────────────
-async function fetchLoads(){
-  try{
-    const r=await fetch(`${SB}/rest/v1/loads?select=*&status=eq.active&order=created_at.desc&limit=50`,{headers:{'apikey':ANON,'Authorization':`Bearer ${ANON}`}});
-    if(r.ok){const d=await r.json();if(d?.length>0){S.loads=d.map(l=>({...l,bids:l.bid_count||0}));return;}}
-  }catch(e){}
-  S.loads=[...LOADS];
+// ─── SUPABASE REALTIME ───────────────────────────────────────────
+function subscribeToLoads(){
+  if(!SUPA)return;
+  SUPA.channel('public-loads')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'loads'},payload=>{
+      const l=payload.new;
+      S.loads.unshift({
+        id:l.id,ref:l.ref,
+        oc:l.origin_city,occ:l.origin_country||'KE',
+        dc:l.dest_city,dcc:l.dest_country||'RW',
+        cargo:l.cargo_type,kg:l.weight_kg,
+        type:l.load_type,rate:l.rate_usd,
+        pickup:l.pickup_date,status:l.status,bids:0,
+      });
+      renderLoadBoard();
+      toast('New load on the board','i');
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'loads'},payload=>{
+      const idx=S.loads.findIndex(l=>l.id===payload.new.id);
+      if(idx>-1){
+        S.loads[idx]={...S.loads[idx],status:payload.new.status,bids:payload.new.bid_count||S.loads[idx].bids};
+        renderLoadBoard();
+      }
+    })
+    .subscribe();
 }
 
 // ─── INIT ────────────────────────────────────────────────────────
-fetchLoads();
+// Data loaded via loadBoardData() inside initApp() after auth
 
 // ─── AUTO DARK/LIGHT MODE ────────────────────────────────────────
 (function(){
@@ -3429,6 +3635,36 @@ function initDashCountUps(){
   },200);
 }
 
+async function handleAuthRedirect(){
+  const hash=window.location.hash;
+  const params=new URLSearchParams(window.location.search);
+  const hasTokens=hash.includes('access_token')||hash.includes('type=signup')||hash.includes('type=recovery')||params.get('code')||params.get('token');
+  if(!hasTokens)return false;
+  try{
+    toast('Verifying your account...','i');
+    const{data,error}=await SUPA.auth.getSession();
+    if(error)throw error;
+    if(data.session){
+      const m=data.session.user.user_metadata;
+      S.userName=m.full_name||m.name||'User';
+      S.userEmail=data.session.user.email;
+      S.role=m.role||'shipper';
+      S.userId=data.session.user.id;
+      window.history.replaceState({},'',window.location.pathname);
+      toast('Email verified! Welcome to Koum, '+S.userName.split(' ')[0]+'! ✅','s');
+      updateSidebarUser();
+      goApp();
+      initApp();
+      return true;
+    }
+    return false;
+  }catch(e){
+    console.error('Auth redirect:',e);
+    toast('Verification failed. Try signing in.','e');
+    return false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{
   applyTranslations();
   renderLandingLoads();
@@ -3437,6 +3673,8 @@ document.addEventListener('DOMContentLoaded',async()=>{
     if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
   }),{threshold:0.12});
   document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+  initParticles();
 
   if(!SUPA){goLand();return;}
 
@@ -3448,23 +3686,32 @@ document.addEventListener('DOMContentLoaded',async()=>{
       S.role=m.role||localStorage.getItem('koum-role')||'shipper';
       S.userId=session.user.id;
       updateSidebarUser();
-      goApp();
-      initApp();
+      renderNotifs();
     }
     if(event==='SIGNED_OUT'){
       S.userName='';S.userEmail='';S.userId='';
       goLand();
     }
+    if(event==='TOKEN_REFRESHED'){
+      console.log('Koum: session refreshed');
+    }
   });
 
-  const hasSession=await authGate();
-  if(hasSession){
-    show('app');
+  const redirectHandled=await handleAuthRedirect();
+  if(redirectHandled)return;
+
+  const{data:{session}}=await SUPA.auth.getSession();
+  if(session){
+    const m=session.user.user_metadata;
+    S.userName=m.full_name||m.name||'User';
+    S.userEmail=session.user.email;
+    S.role=m.role||localStorage.getItem('koum-role')||'shipper';
+    S.userId=session.user.id;
+    updateSidebarUser();
+    goApp();
     initApp();
-    initParticles();
   }else{
     goLand();
-    initParticles();
   }
 });
 
@@ -3500,5 +3747,22 @@ async function installApp(){
   deferredPrompt=null;
 }
 </script>
+<div id="signin-m" class="m-ov" style="display:none">
+  <div class="m-box" style="max-width:400px;background:var(--card);border-radius:16px;padding:1.8rem 1.6rem;position:relative">
+    <div style="font-family:var(--fd);font-size:1.3rem;color:var(--text);margin-bottom:.4rem">Welcome back</div>
+    <div style="font-family:var(--fi);font-size:.75rem;color:var(--muted);margin-bottom:1.4rem">Sign in to your Koum account</div>
+    <button onclick="gmailAuth()" style="width:100%;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:.8rem;font-family:var(--fi);font-size:.82rem;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:1rem;transition:all .18s" onmouseover="this.style.background='var(--surf-lo)'" onmouseout="this.style.background='var(--surf)'"><span>🔵</span>Continue with Google</button>
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+      <div style="flex:1;height:1px;background:var(--bdr)"></div>
+      <div style="font-family:var(--fi);font-size:.65rem;color:var(--subtle)">or</div>
+      <div style="flex:1;height:1px;background:var(--bdr)"></div>
+    </div>
+    <input id="si-email" type="email" placeholder="your@email.com" style="width:100%;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:.75rem .9rem;font-family:var(--fi);font-size:.82rem;color:var(--text);margin-bottom:.65rem;box-sizing:border-box">
+    <input id="si-pass" type="password" placeholder="Your password" style="width:100%;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:.75rem .9rem;font-family:var(--fi);font-size:.82rem;color:var(--text);margin-bottom:1rem;box-sizing:border-box" onkeydown="if(event.key==='Enter')signInWithEmail()">
+    <button onclick="signInWithEmail()" id="si-btn" style="width:100%;background:#001b44;color:#fff;border:none;border-radius:10px;padding:.82rem;font-family:var(--fi);font-size:.82rem;font-weight:700;cursor:pointer;margin-bottom:.85rem;transition:all .18s" onmouseover="this.style.background='#002f6c'" onmouseout="this.style.background='#001b44'">Sign In</button>
+    <div style="text-align:center;font-family:var(--fi);font-size:.72rem;color:var(--muted)">No account yet? <span onclick="closeM('signin-m');goOnboard()" style="color:var(--navy);font-weight:600;cursor:pointer">Create one free →</span></div>
+    <button onclick="closeM('signin-m')" style="position:absolute;top:.9rem;right:.9rem;background:transparent;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)">✕</button>
+  </div>
+</div>
 </body>
 </html>
