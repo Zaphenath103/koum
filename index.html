@@ -913,6 +913,11 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
   .kpi-label { font-size: .6rem; }
 }
 
+/* INITIAL SCREEN STATE */
+#app{display:none!important}
+#onboarding{display:none!important}
+#landing{display:flex!important}
+
 /* ═══════════════════════════════════
    KOUM RESPONSIVE SYSTEM — ALL SIZES
    Phone 360px → Projector 2560px+
@@ -2423,18 +2428,23 @@ const t=k=>T[S.lang]?.[k]??T.en[k]??'';
 
 // ───────────────────── SCREENS ───────────────────────────────────
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')}
-function goLand(){show('landing');initParticles()}
-function goOnboard(){show('onboarding')}
-async function goApp(){
-  if(!SUPA){goLand();return;}
-  const{data:{session}}=await SUPA.auth.getSession();
-  if(!session){goLand();return;}
+function goLand(){
   const land=document.getElementById('landing');
   const onboard=document.getElementById('onboarding');
   const app=document.getElementById('app');
-  if(land)land.style.display='none';
-  if(onboard)onboard.style.display='none';
-  if(app)app.style.display='flex';
+  if(app){app.classList.remove('on');app.style.setProperty('display','none','important');}
+  if(onboard){onboard.classList.remove('on');onboard.style.setProperty('display','none','important');}
+  if(land){land.classList.add('on');land.style.setProperty('display','flex','important');}
+}
+function goOnboard(){show('onboarding')}
+function goApp(){
+  const land=document.getElementById('landing');
+  const onboard=document.getElementById('onboarding');
+  const app=document.getElementById('app');
+  if(land){land.classList.remove('on');land.style.setProperty('display','none','important');}
+  if(onboard){onboard.classList.remove('on');onboard.style.setProperty('display','none','important');}
+  if(app){app.classList.add('on');app.style.setProperty('display','flex','important');}
+  initApp();
 }
 function goMC(){show('mc');renderMC()}
 
@@ -4187,6 +4197,28 @@ async function handleAuthRedirect(){
   }
 }
 
+async function checkAndRoute(){
+  if(!SUPA)return;
+  try{
+    const{data:{session},error}=await SUPA.auth.getSession();
+    if(error)throw error;
+    if(session){
+      const m=session.user.user_metadata||{};
+      S.userName=m.full_name||m.name||session.user.email.split('@')[0]||'User';
+      S.userEmail=session.user.email;
+      S.role=m.role||localStorage.getItem('koum-role')||'shipper';
+      S.userId=session.user.id;
+      updateSidebarUser();
+      goApp();
+    }else{
+      goLand();
+    }
+  }catch(e){
+    console.error('Route check:',e);
+    goLand();
+  }
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{
   applyTranslations();
   renderLandingLoads();
@@ -4200,41 +4232,51 @@ document.addEventListener('DOMContentLoaded',async()=>{
 
   if(!SUPA){goLand();return;}
 
-  SUPA.auth.onAuthStateChange(async(event,session)=>{
+  SUPA.auth.onAuthStateChange((event,session)=>{
+    console.log('Auth event:',event);
+
     if(event==='SIGNED_IN'&&session){
-      const m=session.user.user_metadata;
-      S.userName=m.full_name||m.name||'User';
+      const m=session.user.user_metadata||{};
+      S.userName=m.full_name||m.name||session.user.email.split('@')[0]||'User';
       S.userEmail=session.user.email;
       S.role=m.role||localStorage.getItem('koum-role')||'shipper';
       S.userId=session.user.id;
+      localStorage.setItem('koum-role',S.role);
       updateSidebarUser();
+      goApp();
       renderNotifs();
+      toast('Welcome back, '+S.userName.split(' ')[0]+'! ✅','s');
     }
+
     if(event==='SIGNED_OUT'){
       S.userName='';S.userEmail='';S.userId='';
       goLand();
     }
-    if(event==='TOKEN_REFRESHED'){
-      console.log('Koum: session refreshed');
+
+    if(event==='INITIAL_SESSION'){
+      if(session){
+        const m=session.user.user_metadata||{};
+        S.userName=m.full_name||m.name||session.user.email.split('@')[0]||'User';
+        S.userEmail=session.user.email;
+        S.role=m.role||localStorage.getItem('koum-role')||'shipper';
+        S.userId=session.user.id;
+        updateSidebarUser();
+        goApp();
+        renderNotifs();
+      }else{
+        const hash=window.location.hash;
+        const params=new URLSearchParams(window.location.search);
+        const hasCode=params.get('code')||hash.includes('access_token');
+        if(!hasCode){goLand();}
+      }
     }
   });
 
-  const redirectHandled=await handleAuthRedirect();
-  if(redirectHandled)return;
-
-  const{data:{session}}=await SUPA.auth.getSession();
-  if(session){
-    const m=session.user.user_metadata;
-    S.userName=m.full_name||m.name||'User';
-    S.userEmail=session.user.email;
-    S.role=m.role||localStorage.getItem('koum-role')||'shipper';
-    S.userId=session.user.id;
-    updateSidebarUser();
-    goApp();
-    initApp();
-  }else{
-    goLand();
-  }
+  setTimeout(async()=>{
+    const app=document.getElementById('app');
+    const isAppVisible=app&&app.style.getPropertyValue('display')==='flex';
+    if(!isAppVisible){await checkAndRoute();}
+  },2000);
 });
 
 // ─── PWA SERVICE WORKER ───────────────────────────────────────────
