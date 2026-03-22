@@ -356,7 +356,8 @@ select.fi option{background:#1A1210;color:#F7F2EA}
 .lra{color:#D4874A}
 .lm{display:flex;gap:.72rem;flex-wrap:wrap}
 .lmi{font-family:var(--fi);font-size:.65rem;color:var(--muted)}
-.lrate{font-family:var(--fd);font-size:1.32rem;font-weight:300;color:var(--navy)}
+.lrate,.lcard-rate,.load-rate{font-family:var(--fd)!important;font-size:1.4rem!important;font-weight:300!important;color:var(--gold)!important}
+.lrc,.lcard-route,.load-route{font-size:1rem!important;font-weight:700!important;color:var(--text)!important}
 .lrate-s{font-family:var(--fi);font-size:.6rem;color:var(--subtle);margin-bottom:.45rem}
 .ldesc{font-family:var(--fi);font-size:.7rem;color:var(--muted);margin-top:.55rem;line-height:1.58;font-style:italic;padding-top:.48rem;border-top:1px solid var(--bdr)}
 
@@ -951,13 +952,16 @@ img,svg,video,canvas{
   display:flex;
   width:100%;
   max-width:100%;
-  min-height:100svh;
+  height:100svh;
+  max-height:100svh;
   overflow:hidden;
 }
 .main{
   flex:1;
   min-width:0;
-  overflow:hidden;
+  height:calc(100svh - 52px);
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 .canvas,.page-canvas,.pg{
   width:100%;
@@ -965,8 +969,19 @@ img,svg,video,canvas{
   overflow-y:auto;
   overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
-  padding:clamp(.75rem,2vw,1.5rem);
+  padding:clamp(.75rem,2vw,1.5rem) clamp(.75rem,2vw,1.5rem) 3rem;
   box-sizing:border-box;
+  min-height:calc(100svh - 52px);
+  height:auto;
+  display:flex;
+  flex-direction:column;
+}
+#pg-dashboard,.pg-dashboard{
+  min-height:calc(100svh - 52px);
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+  padding-bottom:2rem;
 }
 
 /* TOPBAR */
@@ -1344,6 +1359,23 @@ img,svg,video,canvas{
 
 }
 
+/* ─── DESKTOP 1024px+ ─── */
+@media(min-width:1024px){
+  .kpi-v,.kpi-val{
+    font-size:2.4rem!important;
+  }
+  .kpi-label{
+    font-size:.58rem!important;
+  }
+  #cmd-strip{
+    padding:1.4rem 1.6rem!important;
+    margin-bottom:1.2rem!important;
+  }
+  #cmd-strip .cmd-stat-val{
+    font-size:2.6rem!important;
+  }
+}
+
 /* ─── TABLET 1024px ─── */
 @media(min-width:769px) and
       (max-width:1024px){
@@ -1378,6 +1410,9 @@ img,svg,video,canvas{
   .kpi-row{
     grid-template-columns:
       repeat(5,1fr)!important;
+  }
+  .kpi-v,.kpi-val{
+    font-size:3rem!important;
   }
   #fleet-grid{
     grid-template-columns:
@@ -2951,6 +2986,38 @@ function pgDashboard(){
     <div class="sec"><div class="sec-t">${L.sec_board}</div><a class="sec-a" onclick="navTo('loadboard')">View all →</a></div>
     <div id="dash-loads"></div>
     ${academyNudge}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.75rem;flex:1">
+
+      <div style="background:var(--card);border-radius:12px;padding:1rem 1.1rem;box-shadow:var(--shadow-sm)">
+        <div style="font-family:var(--fi);font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem">Active Corridors</div>
+        ${['Mombasa→Kigali','Dar→Kampala','Nairobi→Bujumbura','Kampala→Juba','Kigali→Mombasa','Dar→Kigali'].map((c,i)=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.42rem 0;border-bottom:1px solid var(--bdr);font-family:var(--fi)">
+          <span style="font-size:.72rem;color:var(--text)">${c}</span>
+          <span style="font-size:.65rem;color:var(--ok);font-weight:700">${[12,8,5,3,9,6][i]} loads</span>
+        </div>`).join('')}
+      </div>
+
+      <div style="background:var(--card);border-radius:12px;padding:1rem 1.1rem;box-shadow:var(--shadow-sm)">
+        <div style="font-family:var(--fi);font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem">Agent Activity</div>
+        ${[
+          {ic:'🛡',ag:'FraudAgent',msg:'3 loads cleared, 1 flagged',t:'2 min ago',c:'ok'},
+          {ic:'🤝',ag:'MatchAgent',msg:'KBA 772K matched to load KM-044',t:'8 min ago',c:'ok'},
+          {ic:'🔄',ag:'BackhaulAgent',msg:'Return load found: Kigali→Mombasa',t:'15 min ago',c:'ok'},
+          {ic:'💰',ag:'PricingAgent',msg:'Dar→Kampala rate up 4% this week',t:'1h ago',c:'info'},
+          {ic:'🛃',ag:'BorderAgent',msg:'Namanga: 2h delay detected',t:'1h ago',c:'warn'},
+          {ic:'📄',ag:'DocumentAgent',msg:'CMR generated for KM-2026-0042',t:'2h ago',c:'ok'},
+        ].map(a=>`
+        <div style="display:flex;gap:.55rem;padding:.42rem 0;border-bottom:1px solid var(--bdr);align-items:flex-start">
+          <span style="font-size:.9rem;flex-shrink:0">${a.ic}</span>
+          <div style="min-width:0;flex:1">
+            <div style="font-family:var(--fi);font-size:.68rem;font-weight:700;color:var(--${a.c==='ok'?'ok':a.c==='warn'?'warn':'navy'})">${a.ag}</div>
+            <div style="font-family:var(--fi);font-size:.65rem;color:var(--muted);line-height:1.4">${a.msg}</div>
+          </div>
+          <div style="font-family:var(--fi);font-size:.58rem;color:var(--subtle);flex-shrink:0;white-space:nowrap">${a.t}</div>
+        </div>`).join('')}
+      </div>
+
+    </div>
   </div>`;
 }
 
@@ -4121,7 +4188,7 @@ function renderCmdStrip(){
       <div style="font-family:var(--fd);font-size:1.3rem;font-weight:300;color:#fff">${cfg.greeting}</div>
     </div>
     <div style="display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center">
-      ${cfg.stats.map((s,i)=>`${i>0?'<div style="width:1px;background:rgba(255,255,255,.1);height:36px"></div>':''}<div style="text-align:center"><div id="${s.id}" style="font-family:var(--fd);font-size:2rem;font-weight:300;color:${s.color};line-height:1">${s.val}</div><div style="font-family:var(--fi);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(174,198,255,.4);margin-top:.12rem">${s.label}</div></div>`).join('')}
+      ${cfg.stats.map((s,i)=>`${i>0?'<div style="width:1px;background:rgba(255,255,255,.1);height:36px"></div>':''}<div style="text-align:center"><div id="${s.id}" class="cmd-stat-val" style="font-family:var(--fd);font-size:2rem;font-weight:300;color:${s.color};line-height:1">${s.val}</div><div style="font-family:var(--fi);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(174,198,255,.4);margin-top:.12rem">${s.label}</div></div>`).join('')}
     </div>
     <button onclick="${cfg.ctaFn}" style="background:linear-gradient(135deg,#D4874A,#F0B429);color:#000;border:none;border-radius:10px;padding:.68rem 1.35rem;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 4px 14px rgba(212,135,74,.35);transition:all .18s" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">${cfg.cta}</button>
   `;
