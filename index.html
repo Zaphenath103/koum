@@ -980,10 +980,10 @@ input,select,textarea{font-size:max(16px,1rem);max-width:100%}
       <button onclick="openWA('250700000000','Hi Koum! I want to learn more about posting loads on koum.africa')" style="background:transparent;border:1px solid rgba(37,211,102,.25);color:rgba(37,211,102,.75);border-radius:10px;padding:.72rem 1.4rem;font-size:.77rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.45rem;transition:all .2s;white-space:nowrap" onmouseover="this.style.borderColor='rgba(37,211,102,.6)';this.style.color='#25D366'" onmouseout="this.style.borderColor='rgba(37,211,102,.25)';this.style.color='rgba(37,211,102,.75)'"><span style="font-size:1rem">📱</span>Chat on WhatsApp</button>
     </div>
 
-    <div class="h-stats au au4">
-      <div><div class="sn">38</div><div class="sl">Countries</div></div>
-      <div><div class="sn">8</div><div class="sl">EAC Corridors</div></div>
-      <div><div class="sn">$25B</div><div class="sl">EAC Market</div></div>
+    <div class="h-stats au au4" id="land-stats">
+      <div><div class="sn" data-count="38" data-suffix=" Countries">0</div><div class="sl">Countries</div></div>
+      <div><div class="sn" data-count="8" data-suffix=" Corridors">0</div><div class="sl">EAC Corridors</div></div>
+      <div><div class="sn" data-count="25.1" data-prefix="$" data-suffix="B Market">$0B</div><div class="sl">EAC Market</div></div>
       <div><div class="sn">Apr 1</div><div class="sl">Launch</div></div>
     </div>
   </section>
@@ -2008,6 +2008,7 @@ function initApp(){
   const savedChat=localStorage.getItem('tg_chatid');
   if(savedToken)window.TELEGRAM_BOT_TOKEN=savedToken;
   if(savedChat)window.TELEGRAM_CHAT_ID=savedChat;
+  initDashCountUps();
 }
 function updateCtaAndChip(){
   const L=T[S.lang]||T.en;
@@ -2440,6 +2441,7 @@ function switchRole(r,el){
   updateCtaAndChip();
   renderNotifs();
   renderCmdStrip();
+  initDashCountUps();
   toast(`Switched to ${r.charAt(0).toUpperCase()+r.slice(1)} view`,'i');
 }
 
@@ -3155,13 +3157,15 @@ function markAllRead(){
   (NOTIFS[S.role]||[]).forEach(n=>n.unread=false);
   renderNotifs();
 }
-function countUp(el,target,dur){
+function countUp(el,target,dur,prefix,suffix){
   if(!el)return;
   const start=performance.now();
+  const isFloat=target%1!==0;
   function upd(now){
     const p=Math.min((now-start)/dur,1);
     const e=1-Math.pow(1-p,3);
-    el.textContent=Math.floor(target*e).toLocaleString();
+    const val=target*e;
+    el.textContent=(prefix||'')+(isFloat?val.toFixed(1):Math.floor(val).toLocaleString())+(suffix||'');
     if(p<1)requestAnimationFrame(upd);
   }
   requestAnimationFrame(upd);
@@ -3231,10 +3235,43 @@ function renderCmdStrip(){
   if(dt)dt.style.display=S.role==='dispatcher'?'block':'none';
   if(S.role==='dispatcher')renderFleetGrid();
 }
+function initCountUps(){
+  const statsObs=new IntersectionObserver(entries=>entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    statsObs.unobserve(e.target);
+    const items=e.target.querySelectorAll('[data-count]');
+    items.forEach(el=>{
+      const target=parseFloat(el.getAttribute('data-count'));
+      const prefix=el.getAttribute('data-prefix')||'';
+      const suffix=el.getAttribute('data-suffix')||'';
+      const dur=parseInt(el.getAttribute('data-dur'))||1400;
+      countUp(el,target,dur,prefix,suffix);
+    });
+  }),{threshold:0.3});
+  const statsRow=document.getElementById('land-stats');
+  if(statsRow)statsObs.observe(statsRow);
+}
+
+function initDashCountUps(){
+  setTimeout(()=>{
+    const kpiVals=document.querySelectorAll('.kpi-v,.kpi-val');
+    kpiVals.forEach(el=>{
+      const raw=el.textContent.trim();
+      const num=parseFloat(raw.replace(/[^0-9.]/g,''));
+      if(!isNaN(num)&&num>0){
+        const prefix=raw.match(/^[^0-9]*/)[0];
+        const suffix=raw.match(/[^0-9.]*$/)[0];
+        countUp(el,num,900,prefix,suffix);
+      }
+    });
+  },200);
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   applyTranslations();
   initParticles();
   renderLandingLoads();
+  initCountUps();
   const revealObs=new IntersectionObserver(entries=>entries.forEach(e=>{
     if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
   }),{threshold:0.12});
